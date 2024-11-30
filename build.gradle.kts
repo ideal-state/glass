@@ -67,11 +67,11 @@ signing {
     sign(publishing.publications)
 }
 
-val destCopyrightDir = "${projectDir}/build/copyright/META-INF/COPYRIGHT/${project.group.toString().replace('.', '/')}/${project.name}/"
-val licenseFilePath = "${projectDir}/LICENSE.txt"
+val destCopyrightDir = "$projectDir/build/copyright/META-INF/COPYRIGHT/${project.group.toString().replace('.', '/')}/${project.name}/"
+val licenseFilePath = "$projectDir/LICENSE.txt"
 val licensesDirName = "LICENSES"
-val licensesDirPath = "${projectDir}/${licensesDirName}/"
-val noticeFilePath = "${projectDir}/NOTICE.txt"
+val licensesDirPath = "$projectDir/$licensesDirName/"
+val noticeFilePath = "$projectDir/NOTICE.txt"
 tasks.create<Copy>("copyCopyright") {
     from(licenseFilePath, noticeFilePath)
     into(destCopyrightDir)
@@ -79,7 +79,7 @@ tasks.create<Copy>("copyCopyright") {
 
 tasks.create<Copy>("copyDependencyCopyright") {
     from(licensesDirPath)
-    into("${destCopyrightDir}${licensesDirName}/")
+    into("${destCopyrightDir}$licensesDirName/")
 }
 
 tasks.processResources {
@@ -91,7 +91,11 @@ tasks.create<Jar>("sourcesJar") {
     group = "build"
     dependsOn(tasks.processResources)
     archiveClassifier.set("sources")
-    from(project.sourceSets.main.get().allSource)
+    from(
+        project.sourceSets.main
+            .get()
+            .allSource,
+    )
 }
 
 tasks.create<Jar>("javadocJar") {

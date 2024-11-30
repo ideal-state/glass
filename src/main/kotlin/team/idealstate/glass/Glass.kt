@@ -1,4 +1,4 @@
-package team.idealstate.gradle.glass
+package team.idealstate.glass
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -19,6 +19,7 @@ abstract class Glass: Plugin<Any> {
     }
 
     private fun apply(project: Project) {
-
+        val extensionType = GlassExtension::class.java
+        project.extensions.create(extensionType.simpleName, extensionType, project)
     }
 }

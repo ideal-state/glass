@@ -59,9 +59,9 @@ fun Settings.includeModules(root: String = "") {
         count++
     }
     if (count == 0) {
-        println(">> No modules include.")
+        println(">> No modules included.")
     } else {
-        println(">> $count modules include.")
+        println(">> $count modules included.")
     }
     println()
 }

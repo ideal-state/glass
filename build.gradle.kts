@@ -40,7 +40,7 @@ tasks.test {
 
 kotlin {
     jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
+        languageVersion.set(JavaLanguageVersion.of(21))
         vendor.set(JvmVendorSpec.AZUL)
     }
 }
@@ -52,8 +52,8 @@ gradlePlugin {
     vcsUrl.set("https://gitlab.com/ideal-state/glass")
     plugins {
         create("Glass") {
-            id = "team.idealstate.gradle.glass"
-            implementationClass = "team.idealstate.gradle.glass.Glass"
+            id = "team.idealstate.glass"
+            implementationClass = "team.idealstate.glass.Glass"
             displayName = "Glass"
             description = ""
             @Suppress("UnstableApiUsage")
@@ -67,46 +67,57 @@ signing {
     sign(publishing.publications)
 }
 
-val destCopyrightDir = "$projectDir/build/copyright/META-INF/COPYRIGHT/${project.group.toString().replace('.', '/')}/${project.name}/"
-val licenseFilePath = "$projectDir/LICENSE.txt"
-val licensesDirName = "LICENSES"
-val licensesDirPath = "$projectDir/$licensesDirName/"
-val noticeFilePath = "$projectDir/NOTICE.txt"
-tasks.create<Copy>("copyCopyright") {
-    from(licenseFilePath, noticeFilePath)
+val destCopyrightRootDir = "$projectDir/build/copyright/"
+val destCopyrightDir = "${destCopyrightRootDir}META-INF/COPYRIGHT/${project.group.toString().replace('.', '/')}/${project.name}/"
+
+val copyCopyright by tasks.registering(Copy::class) {
+    from("$projectDir/LICENSE.txt", "$projectDir/NOTICE.txt")
     into(destCopyrightDir)
 }
 
-tasks.create<Copy>("copyDependencyCopyright") {
-    from(licensesDirPath)
-    into("${destCopyrightDir}$licensesDirName/")
+val copyDependencyCopyright by tasks.registering(Copy::class) {
+    from("$projectDir/LICENSES/")
+    into("${destCopyrightDir}LICENSES/")
 }
 
 tasks.processResources {
-    dependsOn("copyCopyright", "copyDependencyCopyright")
-    from("$projectDir/build/copyright/")
+    dependsOn(copyCopyright, copyDependencyCopyright)
+    from(destCopyrightRootDir)
 }
 
-tasks.create<Jar>("sourcesJar") {
+val sourcesJar by tasks.registering(Jar::class) {
     group = "build"
     dependsOn(tasks.processResources)
     archiveClassifier.set("sources")
     from(
         project.sourceSets.main
             .get()
-            .allSource,
+            .kotlin,
+        tasks.processResources,
     )
 }
 
-tasks.create<Jar>("javadocJar") {
+val dokkaGeneratedDir = "$projectDir/build/dokka/"
+val copyToJavadoc by tasks.registering(Copy::class) {
+    group = "documentation"
+    dependsOn(tasks.dokkaGenerate)
+    from("${dokkaGeneratedDir}html/")
+    into("$projectDir/build/docs/javadoc/")
+}
+
+tasks.dokkaGenerate {
+    finalizedBy(copyToJavadoc)
+}
+
+val javadocJar by tasks.registering(Jar::class) {
     group = "build"
     dependsOn(tasks.dokkaGenerate)
     archiveClassifier.set("javadoc")
-    from("$projectDir/build/dokka/html/")
+    from("${dokkaGeneratedDir}html/")
 }
 
 tasks.assemble {
-    dependsOn("sourcesJar", "javadocJar")
+    dependsOn(sourcesJar, javadocJar)
 }
 
 spotless {

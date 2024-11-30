@@ -12,17 +12,6 @@ plugins {
 group = "team.idealstate.gradle"
 version = "0.1.0"
 
-val javaVersion = 8
-
-kotlin {
-    coreLibrariesVersion = "1.9.20"
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(javaVersion))
-        vendor.set(JvmVendorSpec.AZUL)
-    }
-    compilerOptions.javaParameters.set(true)
-}
-
 configurations {
     api {
         dependencies.remove(project.dependencies.gradleApi())
@@ -32,10 +21,6 @@ configurations {
 repositories {
     mavenLocal()
     gradlePluginPortal()
-    maven {
-        name = "sonatype-public"
-        url = uri("https://oss.sonatype.org/content/groups/public/")
-    }
     mavenCentral()
 }
 
@@ -46,21 +31,16 @@ dependencies {
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+}
 
-    if (javaVersion == 8) {
-        testRuntimeOnly(
-            files(
-                File(
-                    javaToolchains
-                        .compilerFor {
-                            languageVersion.set(java.toolchain.languageVersion)
-                            vendor.set(java.toolchain.vendor)
-                        }.get()
-                        .executablePath.asFile.parentFile.parentFile,
-                    "lib/tools.jar",
-                ),
-            ),
-        )
+tasks.test {
+    useJUnitPlatform()
+}
+
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+        vendor.set(JvmVendorSpec.AZUL)
     }
 }
 
@@ -76,28 +56,15 @@ gradlePlugin {
             implementationClass = "team.idealstate.gradle.glass.Glass"
             displayName = "Glass"
             description = ""
+            @Suppress("UnstableApiUsage")
             tags.set(listOf("java", "repository", "configuration", "publish", "fatjar", "statistics"))
         }
-    }
-}
-
-publishing {
-    repositories {
-        maven {
-            name = "build"
-            url = uri("file://${projectDir}/build/repository/")
-        }
-        mavenLocal()
     }
 }
 
 signing {
     useGpgCmd()
     sign(publishing.publications)
-}
-
-tasks.test {
-    useJUnitPlatform()
 }
 
 val destCopyrightDir = "${projectDir}/build/copyright/META-INF/COPYRIGHT/${project.group.toString().replace('.', '/')}/${project.name}/"
@@ -124,9 +91,7 @@ tasks.create<Jar>("sourcesJar") {
     group = "build"
     dependsOn(tasks.processResources)
     archiveClassifier.set("sources")
-    val sourceSet = project.sourceSets.main.get()
-    val allSource = sourceSet.allSource
-    from(allSource)
+    from(project.sourceSets.main.get().allSource)
 }
 
 tasks.create<Jar>("javadocJar") {

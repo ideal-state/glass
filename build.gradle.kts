@@ -9,7 +9,7 @@ plugins {
     id("signing")
 }
 
-group = "team.idealstate.gradle"
+group = "team.idealstate.glass"
 version = "0.1.0"
 
 configurations {
@@ -26,8 +26,9 @@ repositories {
 
 dependencies {
     compileOnly(gradleApi())
-    
-    implementation("org.ow2.asm:asm:9.7.1")
+
+    implementation("com.diffplug.spotless:spotless-plugin-gradle:7.0.0.BETA4")
+    implementation("com.gradleup.shadow:shadow-gradle-plugin:9.0.0-beta2")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -47,9 +48,8 @@ kotlin {
 val encoding = Charsets.UTF_8
 
 gradlePlugin {
-    val repoUrl = "https://gitlab.com/ideal-state/glass"
     website.set("https://docs.ideal-state.team/glass/")
-    vcsUrl.set(repoUrl)
+    vcsUrl.set("https://gitlab.com/ideal-state/glass")
     plugins {
         create("Glass") {
             id = "team.idealstate.gradle.glass"

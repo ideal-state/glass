@@ -20,7 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 
-abstract class Glass : Plugin<Any> {
+open class Glass : Plugin<Any> {
     override fun apply(target: Any) {
         when (target) {
             is Settings -> apply(target)
@@ -30,10 +30,14 @@ abstract class Glass : Plugin<Any> {
     }
 
     private fun apply(settings: Settings) {
+        val foojay = "org.gradle.toolchains.foojay-resolver-convention"
+        val plugins = settings.plugins
+        if (!plugins.hasPlugin(foojay)) {
+            plugins.apply(foojay)
+        }
     }
 
     private fun apply(project: Project) {
-        val extensionType = GlassExtension::class.java
-        project.extensions.create(extensionType.simpleName, extensionType, project)
+        GlassExtension.register(project)
     }
 }

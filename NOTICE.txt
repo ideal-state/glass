@@ -29,6 +29,24 @@
 
 ------------------------------------------------------------------------------
 
+    jackson-databind
+    (https://github.com/FasterXML/jackson-databind)
+    Apache License 2.0
+
+------------------------------------------------------------------------------
+
+    jackson-module-kotlin
+    (https://github.com/FasterXML/jackson-module-kotlin)
+    Apache License 2.0
+
+------------------------------------------------------------------------------
+
+    foojay
+    (https://github.com/gradle/disco-toolchains)
+    Apache License 2.0
+
+------------------------------------------------------------------------------
+
     spotless
     (https://github.com/diffplug/spotless)
     Apache License 2.0

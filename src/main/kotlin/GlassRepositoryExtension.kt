@@ -24,12 +24,19 @@ import org.gradle.api.publish.PublicationContainer
 import org.gradle.api.publish.maven.MavenPublication
 import java.net.URI
 
+private const val DEFAULT_NAME = "glass"
 private const val PREFIX = "glass.publish"
 private const val KEY = "key"
 private const val SECRET = "secret"
 
 val PublicationContainer.default: MavenPublication
-    get() = named("glass", MavenPublication::class.java).get()
+    get() {
+        val publication = findByName(DEFAULT_NAME)
+        if (publication is MavenPublication) {
+            return publication
+        }
+        return register(DEFAULT_NAME, MavenPublication::class.java).get()
+    }
 
 fun MavenArtifactRepository.login() {
     val id = name.replace(' ', '-').lowercase()
@@ -58,6 +65,12 @@ fun MavenArtifactRepository.login(project: Project) {
             ) as String
     }
 }
+
+fun RepositoryHandler.project(project: Project): MavenArtifactRepository =
+    maven {
+        it.name = "Project"
+        it.url = project.uri("file://${project.projectDir}/build/repository")
+    }
 
 fun RepositoryHandler.aliyun(): MavenArtifactRepository =
     maven {

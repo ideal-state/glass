@@ -82,10 +82,5 @@ fun Settings.includeModules(root: String = "") {
         println(">> included $moduleId (${project.name})")
         count++
     }
-    if (count == 0) {
-        println(">> No modules included.")
-    } else {
-        println(">> $count modules included.")
-    }
-    println()
+    println(">> $count modules included.\n")
 }

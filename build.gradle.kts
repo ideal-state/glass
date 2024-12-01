@@ -27,6 +27,10 @@ repositories {
 dependencies {
     compileOnly(gradleApi())
 
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.2")
+
+    implementation("org.gradle.toolchains:foojay-resolver:0.8.0")
     implementation("com.diffplug.spotless:spotless-plugin-gradle:7.0.0.BETA4")
     implementation("com.gradleup.shadow:shadow-gradle-plugin:9.0.0-beta2")
 
@@ -144,7 +148,7 @@ spotless {
 
         endWithNewline()
 
-        ktlint()
+        ktlint().editorConfigOverride(mapOf("ktlint_standard_no-wildcard-imports" to "disabled"))
     }
 
     java {
@@ -164,26 +168,8 @@ spotless {
 
         endWithNewline()
 
-        ktlint()
+        ktlint().editorConfigOverride(mapOf("ktlint_standard_no-wildcard-imports" to "disabled"))
 
         applyLicenseHeader(this)
-    }
-
-    sql {
-        target("src/*/resources/**/*.sql")
-
-        dbeaver()
-    }
-
-    json {
-        target("src/*/resources/**/*.json")
-
-        jackson()
-    }
-
-    yaml {
-        target("src/*/resources/**/*.yml", "src/*/resources/**/*.yaml")
-
-        jackson()
     }
 }

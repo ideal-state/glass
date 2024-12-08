@@ -27,12 +27,12 @@ repositories {
 dependencies {
     compileOnly(gradleApi())
 
+    implementation("org.ow2.asm:asm:9.7.1")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.2")
 
     implementation("org.gradle.toolchains:foojay-resolver:0.8.0")
     implementation("com.diffplug.spotless:spotless-plugin-gradle:7.0.0.BETA4")
-    implementation("com.gradleup.shadow:shadow-gradle-plugin:9.0.0-beta2")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -71,22 +71,30 @@ signing {
     sign(publishing.publications)
 }
 
-val destCopyrightRootDir = "$projectDir/build/copyright/"
-val destCopyrightDir = "${destCopyrightRootDir}META-INF/COPYRIGHT/${project.group.toString().replace('.', '/')}/${project.name}/"
-
-val copyCopyright by tasks.registering(Copy::class) {
-    from("$projectDir/LICENSE.txt", "$projectDir/NOTICE.txt")
-    into(destCopyrightDir)
-}
-
-val copyDependencyCopyright by tasks.registering(Copy::class) {
-    from("$projectDir/LICENSES/")
-    into("${destCopyrightDir}LICENSES/")
+val copyrightRootName = "COPYRIGHT"
+val copyright by tasks.registering(Copy::class) {
+    group = "documentation"
+    val licenseFile = "LICENSE.txt"
+    val noticeFile = "NOTICE.txt"
+    val licensesDir = "LICENSES/"
+    val destinationDirectory =
+        project.layout.buildDirectory
+            .dir("docs/$copyrightRootName")
+            .get()
+    into(destinationDirectory.asFile)
+    val rootProjectDir = project.rootProject.projectDir
+    from("$rootProjectDir/$licenseFile")
+    from("$rootProjectDir/$noticeFile")
+    from("$rootProjectDir/$licensesDir") {
+        into(licensesDir)
+    }
 }
 
 tasks.processResources {
-    dependsOn(copyCopyright, copyDependencyCopyright)
-    from(destCopyrightRootDir)
+    dependsOn(copyright)
+    from(copyright) {
+        into("META-INF/$copyrightRootName/")
+    }
 }
 
 val sourcesJar by tasks.registering(Jar::class) {
@@ -137,39 +145,20 @@ spotless {
 
     groovyGradle {
         target("*.gradle")
-
         endWithNewline()
-
         greclipse()
     }
 
     kotlinGradle {
         target("*.gradle.kts")
-
         endWithNewline()
-
-        ktlint().editorConfigOverride(mapOf("ktlint_standard_no-wildcard-imports" to "disabled"))
-    }
-
-    java {
-        target("src/*/java/**/*.java")
-
-        endWithNewline()
-
-        googleJavaFormat().aosp().reflowLongStrings(true).formatJavadoc(true)
-
-        formatAnnotations()
-
-        applyLicenseHeader(this)
+        ktlint()
     }
 
     kotlin {
         target("src/*/kotlin/**/*.kt", "src/*/kotlin/**/*.kts")
-
         endWithNewline()
-
-        ktlint().editorConfigOverride(mapOf("ktlint_standard_no-wildcard-imports" to "disabled"))
-
+        ktlint()
         applyLicenseHeader(this)
     }
 }

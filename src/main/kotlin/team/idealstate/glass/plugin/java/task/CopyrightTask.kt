@@ -14,11 +14,12 @@
  *    limitations under the License.
  */
 
-package team.idealstate.glass.task
+package team.idealstate.glass.plugin.java.task
 
 import org.gradle.api.Project
-import org.gradle.api.file.Directory
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.TaskProvider
 
 @CacheableTask
 open class CopyrightTask : Copy() {
@@ -36,20 +37,16 @@ open class CopyrightTask : Copy() {
         fun of(project: Project): TaskProvider<CopyrightTask> = project.tasks.named(NAME, CopyrightTask::class.java)
     }
 
-    @OutputDirectory
-    val destinationDirectory: Directory =
-        project.layout.buildDirectory
-            .dir("docs/$ROOT_NAME")
-            .get()
-
     init {
         group = "documentation"
 
-        super.into(destinationDirectory.asFile)
+        super.into(project.layout.buildDirectory.dir("docs/$ROOT_NAME"))
 
-        super.from("${project.rootProject.projectDir}/$LICENSE_FILE")
-        super.from("${project.rootProject.projectDir}/$NOTICE_FILE")
-        super.from("${project.rootProject.projectDir}/$LICENSES_DIR") {
+        val rootProjectDir = project.rootProject.projectDir
+
+        super.from("$rootProjectDir/$LICENSE_FILE")
+        super.from("$rootProjectDir/$NOTICE_FILE")
+        super.from("$rootProjectDir/$LICENSES_DIR") {
             it.into(LICENSES_DIR)
         }
     }

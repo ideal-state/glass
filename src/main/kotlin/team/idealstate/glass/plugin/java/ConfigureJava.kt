@@ -14,22 +14,28 @@
  *    limitations under the License.
  */
 
-package team.idealstate.glass.plugin
+package team.idealstate.glass.plugin.java
 
-import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.external.javadoc.StandardJavadocDocletOptions
-import org.gradle.language.jvm.tasks.ProcessResources
-import java
+import team.idealstate.glass.context.util.Plugins
+import team.idealstate.glass.plugin.Configure
+import team.idealstate.glass.plugin.java.task.SourcesTask
 import java.nio.charset.Charset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 open class ConfigureJava : Configure() {
-
     companion object {
+        const val JAR_TASK_NAME = "jar"
+        const val SOURCES_JAR_TASK_NAME = "sourcesJar"
+        const val JAVADOC_JAR_TASK_NAME = "javadocJar"
+        const val CONFIGURATION_INTERNAL_NAME = "internal"
+        const val CONFIGURATION_DOCLET_NAME = "doclet"
+
         @JvmStatic
         fun configureJarTask(jar: Jar) {
             jar.doFirst {
@@ -51,15 +57,26 @@ open class ConfigureJava : Configure() {
     }
 
     override fun apply() {
-        val encoding = Charset.defaultCharset().name()
+        GlassJavaExtension.register(project)
 
-        configureJavaPluginExtension()
-
-        configureJavaCompileTask(encoding)
-        configureJavadocTask(encoding)
+        configureCompileJavaTask()
         configureSourcesJarTask()
+        configureJavadocTask()
         configureJavadocJarTask()
         configureJarTask()
+    }
+
+    private fun configureCompileJavaTask() {
+        val configurations = project.configurations
+        val internal = configurations.register(CONFIGURATION_INTERNAL_NAME)
+        configurations.named("compileClasspath") {
+            it.extendsFrom(internal.get())
+        }
+        project.tasks.named("compileJava", JavaCompile::class.java) {
+            it.doFirst { _ ->
+                it.options.encoding = Charset.defaultCharset().name()
+            }
+        }
     }
 
     private fun configureJarTask() {
@@ -69,53 +86,37 @@ open class ConfigureJava : Configure() {
     }
 
     private fun configureSourcesJarTask() {
-        project.tasks.named("sourcesJar", Jar::class.java) {
-            it.dependsOn("processResources")
-            it.from(project.tasks.named("processResources", ProcessResources::class.java))
+        SourcesTask.register(project) {
+            it.sourceSet(SourceSet.MAIN_SOURCE_SET_NAME)
+        }
+        project.tasks.register("sourcesJar", Jar::class.java) {
+            it.group = "build"
+            it.archiveClassifier.set("sources")
+            it.from(project.tasks.named("sources", SourcesTask::class.java))
+            it.destinationDirectory.set(project.layout.buildDirectory.dir("libs"))
             configureJarTask(it)
         }
     }
 
     private fun configureJavadocJarTask() {
-        project.tasks.named("javadocJar", Jar::class.java) {
+        project.tasks.register("javadocJar", Jar::class.java) {
+            it.group = "build"
+            it.archiveClassifier.set("javadoc")
+            it.from(project.tasks.named("javadoc", Javadoc::class.java))
+            it.destinationDirectory.set(project.layout.buildDirectory.dir("libs"))
             configureJarTask(it)
         }
     }
 
-    private fun configureJavaPluginExtension() {
-        val java = project.extensions.getByName("java") as JavaPluginExtension
-        java.apply {
-            withSourcesJar()
-            withJavadocJar()
-        }
-    }
-
-    private fun configureJavaCompileTask(encoding: String) {
-        project.tasks.whenTaskAdded {
-            if (it is JavaCompile) {
-                it.options.also { compileOptions ->
-                    compileOptions.isFork = true
-                    compileOptions.encoding = encoding
-                    compileOptions.compilerArgs.also { compileArgs ->
-                        compileArgs.add("-parameters")
-                    }
-                    compileOptions.forkOptions.also { forkOptions ->
-                        forkOptions.jvmArgs!!.add("-J-Dfile.encoding=$encoding")
-                        forkOptions.executable =
-                            it.javaCompiler
-                                .get()
-                                .executablePath.asFile.absolutePath
-                    }
-                }
-            }
-        }
-    }
-
-    private fun configureJavadocTask(encoding: String) {
-        val doclet = project.configurations.register("doclet").get()
+    private fun configureJavadocTask() {
+        val encoding = Charset.defaultCharset().name()
+        val doclet = project.configurations.register(CONFIGURATION_DOCLET_NAME)
         project.tasks.named("javadoc", Javadoc::class.java) {
             it.options { options ->
-                val docletFiles = doclet.allArtifacts.files.files
+                val docletFiles =
+                    doclet
+                        .get()
+                        .allArtifacts.files.files
                 if (docletFiles.isEmpty()) {
                     if (options is StandardJavadocDocletOptions) {
                         options.charSet(encoding)

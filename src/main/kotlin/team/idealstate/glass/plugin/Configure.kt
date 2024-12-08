@@ -18,12 +18,8 @@ package team.idealstate.glass.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import team.idealstate.glass.Glass
-import kotlin.reflect.KClass
 
 abstract class Configure : Plugin<Project> {
-    object Plugins
-
     private var applied: Project? = null
         set(value) {
             if (field != null) {
@@ -36,7 +32,7 @@ abstract class Configure : Plugin<Project> {
             applied ?: throw IllegalStateException("Not applied.")
             return applied!!
         }
-    private val depends: MutableList<Any> = mutableListOf()
+    private val depends: MutableList<String> = mutableListOf()
 
     final override fun apply(target: Project) {
         applied = target
@@ -46,44 +42,17 @@ abstract class Configure : Plugin<Project> {
 
     protected abstract fun apply()
 
-    protected fun dependsOn(vararg plugin: Any) {
-        depends.addAll(plugin)
+    protected fun dependsOn(vararg plugins: String) {
+        depends.addAll(plugins)
     }
 
-    @Suppress("UNCHECKED_CAST")
     private fun applyDepends() {
-        val plugins = project.plugins
-        if (!plugins.hasPlugin(Glass::class.java)) {
-            plugins.apply(Glass::class.java)
-        }
+        val pluginManager = project.pluginManager
         for (depend in depends) {
-            when (depend) {
-                is String -> {
-                    if (plugins.hasPlugin(depend)) {
-                        continue
-                    }
-                    plugins.apply(depend)
-                }
-                is KClass<*> -> {
-                    val javaClass = depend.java
-                    if (!Plugin::class.java.isAssignableFrom(javaClass)) {
-                        continue
-                    }
-                    if (plugins.hasPlugin(javaClass as Class<out Plugin<*>>)) {
-                        continue
-                    }
-                    plugins.apply(javaClass)
-                }
-                is Class<*> -> {
-                    if (!Plugin::class.java.isAssignableFrom(depend)) {
-                        continue
-                    }
-                    if (plugins.hasPlugin(depend as Class<out Plugin<*>>)) {
-                        continue
-                    }
-                    plugins.apply(depend)
-                }
+            if (pluginManager.hasPlugin(depend)) {
+                continue
             }
+            pluginManager.apply(depend)
         }
     }
 }

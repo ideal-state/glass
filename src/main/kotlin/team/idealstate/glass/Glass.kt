@@ -16,9 +16,13 @@
 
 package team.idealstate.glass
 
+import glass
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import team.idealstate.glass.context.util.Plugins
+import team.idealstate.glass.plugin.java.ConfigureJava
+import java
 
 open class Glass : Plugin<Any> {
     override fun apply(target: Any) {
@@ -31,13 +35,17 @@ open class Glass : Plugin<Any> {
 
     private fun apply(settings: Settings) {
         val foojay = "org.gradle.toolchains.foojay-resolver-convention"
-        val plugins = settings.plugins
-        if (!plugins.hasPlugin(foojay)) {
-            plugins.apply(foojay)
+        val pluginManager = settings.pluginManager
+        if (!pluginManager.hasPlugin(foojay)) {
+            pluginManager.apply(foojay)
         }
     }
 
     private fun apply(project: Project) {
-        GlassExtension.register(project)
+        val pluginManager = project.pluginManager
+        val pluginType = ConfigureJava::class.java
+        if (pluginManager.hasPlugin(Plugins.glass(Plugins.java))) {
+            pluginManager.apply(pluginType)
+        }
     }
 }

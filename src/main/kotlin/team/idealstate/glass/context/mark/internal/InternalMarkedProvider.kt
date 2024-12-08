@@ -14,11 +14,14 @@
  *    limitations under the License.
  */
 
-package team.idealstate.glass.data
+package team.idealstate.glass.context.mark.internal
 
-data class ScopedDependencyInformation(
-    override val group: String,
-    override val name: String,
-    override val version: String,
-    val scope: String = "",
-) : DependencyInformation
+import org.gradle.api.provider.Provider
+import team.idealstate.glass.context.mark.Marked
+import team.idealstate.glass.context.mark.MarkedProvider
+
+internal class InternalMarkedProvider<T : Any, M : Marked<T>>(
+    override val mark: T,
+    private val provider: Provider<M>,
+) : MarkedProvider<T, M>,
+    Provider<M> by provider

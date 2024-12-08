@@ -1,0 +1,41 @@
+/*
+ *    Copyright 2024 ideal-state
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+package team.idealstate.glass.context.mark
+
+import org.gradle.api.internal.provider.DefaultProvider
+import org.gradle.api.provider.Provider
+import team.idealstate.glass.context.mark.internal.InternalMarkedProvider
+
+interface MarkedProvider<T : Any, M : Marked<T>> : Provider<M> {
+    companion object {
+        @JvmStatic
+        fun <T : Any, M : Marked<T>> of(marked: M): MarkedProvider<T, M> {
+            val mark = marked.mark
+            return InternalMarkedProvider(mark, DefaultProvider { marked }).apply {
+                get()
+            }
+        }
+
+        @JvmStatic
+        fun <T : Any, M : Marked<T>> create(
+            mark: T,
+            provider: Provider<M>,
+        ): MarkedProvider<T, M> = InternalMarkedProvider(mark, provider)
+    }
+
+    val mark: T
+}

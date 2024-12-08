@@ -14,13 +14,8 @@
  *    limitations under the License.
  */
 
-package team.idealstate.glass.data
+package team.idealstate.glass.context.mark
 
-interface DependencyInformation {
-
-    val id: String
-        get() = "$group:$name:$version"
-    val group: String
-    val name: String
-    val version: String
+interface MarkedFactory<T : Any, M : Marked<T>> {
+    fun create(mark: T): M
 }

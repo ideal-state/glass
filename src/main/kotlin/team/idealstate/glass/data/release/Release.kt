@@ -14,18 +14,29 @@
  *    limitations under the License.
  */
 
-package team.idealstate.glass.plugin
+package team.idealstate.glass.data.release
 
-import org.gradle.plugins.signing.SigningExtension
-import signing
+import org.gradle.api.Action
+import team.idealstate.glass.context.mark.Marked
+import java.io.File
 
-open class ConfigureSigning : Configure() {
-    init {
-        dependsOn(Plugins.signing)
-    }
+interface Release<V : Any, O : Any> : Marked<V> {
+    val type: ReleaseType
 
-    override fun apply() {
-        val signing = project.extensions.getByName("signing") as SigningExtension
-        signing.useGpgCmd()
-    }
+    fun isReserved(): Boolean =
+        when (type) {
+            ReleaseType.MAIN, ReleaseType.TEST -> true
+            else -> false
+        }
+
+    val version: V
+        get() = mark
+
+    val location: String
+
+    fun location(base: File): File
+
+    fun options(configureOptions: Action<O>)
+
+    fun apply(options: O)
 }

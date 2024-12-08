@@ -14,11 +14,10 @@
  *    limitations under the License.
  */
 
-@file:Suppress("unused", "UnusedReceiverParameter")
+package team.idealstate.glass.data.release
 
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
-fun ShadowJar.internal(pattern: String): ShadowJar {
-    relocate(pattern, "${project.group}.internal.$pattern")
-    return this
+enum class ReleaseType {
+    MAIN,
+    TEST,
+    EXTEND,
 }

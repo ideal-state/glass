@@ -29,6 +29,12 @@
 
 ------------------------------------------------------------------------------
 
+    asm
+    (https://gitlab.ow2.org/asm/asm)
+    3-Clause BSD
+
+------------------------------------------------------------------------------
+
     jackson-databind
     (https://github.com/FasterXML/jackson-databind)
     Apache License 2.0
@@ -49,12 +55,6 @@
 
     spotless
     (https://github.com/diffplug/spotless)
-    Apache License 2.0
-
-------------------------------------------------------------------------------
-
-    shadow
-    (https://github.com/GradleUp/shadow)
     Apache License 2.0
 
 ------------------------------------------------------------------------------

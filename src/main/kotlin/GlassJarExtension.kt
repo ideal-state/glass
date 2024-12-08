@@ -18,10 +18,10 @@
 
 import org.gradle.api.Action
 import org.gradle.api.tasks.bundling.Jar
-import team.idealstate.glass.data.JavaAgentManifest
+import team.idealstate.glass.plugin.java.data.JavaAgentManifest
 
 fun Jar.agent(action: Action<JavaAgentManifest>) {
-    val agentManifest = JavaAgentManifest()
+    val agentManifest = JavaAgentManifest(project)
     action.execute(agentManifest)
     manifest.attributes(agentManifest.toManifestAttributes())
 }

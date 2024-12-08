@@ -19,6 +19,7 @@
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainService
 import java.io.File
 
@@ -27,18 +28,26 @@ fun Project.java(vararg libs: String): ConfigurableFileCollection {
     val ret = objects.fileCollection()
     val toolchain = java.toolchain
     val languageVersion = toolchain.languageVersion
-    if (!languageVersion.isPresent || !languageVersion.get().canCompileOrRun(8)) {
+    if (!languageVersion.isPresent) {
         return ret
+    }
+    var javaLanguageVersion = languageVersion.get()
+    if (javaLanguageVersion.canCompileOrRun(8)) {
+        javaLanguageVersion = JavaLanguageVersion.of(8)
     }
     val javaToolchains = extensions.getByName("javaToolchains") as JavaToolchainService
     val javaHome =
         javaToolchains
             .compilerFor {
-                it.languageVersion.set(languageVersion)
+                it.languageVersion.set(javaLanguageVersion)
                 it.vendor.set(toolchain.vendor)
             }.get()
             .executablePath.asFile.parentFile.parentFile
-    val libPaths = libs.map { File(javaHome, "lib/$it.jar") }.toTypedArray()
+    val libPaths =
+        libs
+            .map { File(javaHome, "lib/$it.jar") }
+            .filter { it.exists() }
+            .toTypedArray()
     ret.from(*libPaths)
     return ret
 }

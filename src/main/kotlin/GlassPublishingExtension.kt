@@ -16,16 +16,16 @@
 
 @file:Suppress("unused", "UnusedReceiverParameter")
 
-import org.gradle.api.artifacts.Configuration
-import team.idealstate.glass.data.dependency.DependencyInformation
-import team.idealstate.glass.data.dependency.ScopedDependencyInformation
+import org.gradle.api.Action
+import org.gradle.api.NamedDomainObjectProvider
+import org.gradle.api.publish.PublicationContainer
+import org.gradle.api.publish.maven.MavenPublication
 
-val Configuration.dependenciesInformation: LinkedHashSet<DependencyInformation>
-    get() {
-        val dependencies = resolvedConfiguration.firstLevelModuleDependencies
-        val ret = LinkedHashSet<DependencyInformation>(dependencies.size)
-        for (dependency in dependencies) {
-            ret.add(ScopedDependencyInformation(dependency.moduleGroup, dependency.moduleName, dependency.moduleVersion))
-        }
-        return ret
+private const val MAIN_NAME = "main"
+
+fun PublicationContainer.main(configureAction: Action<MavenPublication> = Action {}): NamedDomainObjectProvider<MavenPublication> {
+    if (names.contains(MAIN_NAME)) {
+        return named(MAIN_NAME, MavenPublication::class.java, configureAction)
     }
+    return register(MAIN_NAME, MavenPublication::class.java, configureAction)
+}

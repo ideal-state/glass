@@ -16,16 +16,6 @@
 
 @file:Suppress("unused", "UnusedReceiverParameter")
 
-import org.gradle.api.artifacts.Configuration
-import team.idealstate.glass.data.dependency.DependencyInformation
-import team.idealstate.glass.data.dependency.ScopedDependencyInformation
+import org.gradle.api.Action
 
-val Configuration.dependenciesInformation: LinkedHashSet<DependencyInformation>
-    get() {
-        val dependencies = resolvedConfiguration.firstLevelModuleDependencies
-        val ret = LinkedHashSet<DependencyInformation>(dependencies.size)
-        for (dependency in dependencies) {
-            ret.add(ScopedDependencyInformation(dependency.moduleGroup, dependency.moduleName, dependency.moduleVersion))
-        }
-        return ret
-    }
+fun <T> Any.action(action: Action<T>): Action<T> = action

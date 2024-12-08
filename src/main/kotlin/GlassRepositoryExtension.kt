@@ -20,23 +20,11 @@ import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
-import org.gradle.api.publish.PublicationContainer
-import org.gradle.api.publish.maven.MavenPublication
 import java.net.URI
 
-private const val DEFAULT_NAME = "glass"
 private const val PREFIX = "glass.publish"
 private const val KEY = "key"
 private const val SECRET = "secret"
-
-val PublicationContainer.default: MavenPublication
-    get() {
-        val publication = findByName(DEFAULT_NAME)
-        if (publication is MavenPublication) {
-            return publication
-        }
-        return register(DEFAULT_NAME, MavenPublication::class.java).get()
-    }
 
 fun MavenArtifactRepository.login() {
     val id = name.replace(' ', '-').lowercase()

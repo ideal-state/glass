@@ -34,7 +34,7 @@ class JavaRelease(
         const val MAIN_NAME = "main"
         const val TEST_NAME = "test"
         const val EXTEND_NAME_PREFIX = "java"
-        const val LEAST_SUPPORTED_VERSION = 9
+        const val LEAST_MULTI_RELEASE_VERSION = 9
     }
 
     class Factory(
@@ -70,10 +70,10 @@ class JavaRelease(
     private fun validateJavaLanguageVersion(mark: Int) {
         val version = JavaLanguageVersion.of(mark)
         if (!isReserved()) {
-            if (!version.canCompileOrRun(LEAST_SUPPORTED_VERSION)) {
+            if (!version.canCompileOrRun(LEAST_MULTI_RELEASE_VERSION)) {
                 throw IllegalArgumentException(
                     "Java version must be at least ${JavaLanguageVersion.of(
-                        LEAST_SUPPORTED_VERSION,
+                        LEAST_MULTI_RELEASE_VERSION,
                     )}. (current: $version)",
                 )
             }

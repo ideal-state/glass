@@ -134,7 +134,7 @@ open class GlassJavaExtension(
         }
     }
 
-    fun withInternal(){
+    fun withInternal() {
         if (apply("withInternal")) return
         val configurations = project.configurations
         val internal = configurations.named(ConfigureJava.CONFIGURATION_INTERNAL_NAME).get()

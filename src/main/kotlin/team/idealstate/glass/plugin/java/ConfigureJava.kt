@@ -57,21 +57,18 @@ open class ConfigureJava : Configure() {
     }
 
     override fun apply() {
-        GlassJavaExtension.register(project)
-
         configureCompileJavaTask()
         configureSourcesJarTask()
         configureJavadocTask()
         configureJavadocJarTask()
         configureJarTask()
+
+        GlassJavaExtension.register(project)
     }
 
     private fun configureCompileJavaTask() {
         val configurations = project.configurations
-        val internal = configurations.register(CONFIGURATION_INTERNAL_NAME)
-        configurations.named("compileClasspath") {
-            it.extendsFrom(internal.get())
-        }
+        val internal = configurations.register(CONFIGURATION_INTERNAL_NAME).get()
         project.tasks.named("compileJava", JavaCompile::class.java) {
             it.doFirst { _ ->
                 it.options.encoding = Charset.defaultCharset().name()

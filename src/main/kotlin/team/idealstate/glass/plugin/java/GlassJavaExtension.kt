@@ -54,13 +54,13 @@ open class GlassJavaExtension(
         fun dependenciesInformation(project: Project): List<ScopedDependencyInformation> {
             val dependenciesInformation = linkedMapOf<String, ScopedDependencyInformation>()
             var scope = "compile"
-            val compileClasspath = project.configurations.getByName("compileClasspath")
+            val compileClasspath = project.configurations.getByName("runtimeClasspath")
             for (information in compileClasspath.dependenciesInformation) {
                 dependenciesInformation[information.id] =
                     ScopedDependencyInformation(information.group, information.name, information.version, scope)
             }
-            scope = "runtime"
-            val runtimeClasspath = project.configurations.getByName("runtimeClasspath")
+            scope = "provided"
+            val runtimeClasspath = project.configurations.getByName("compileClasspath")
             for (information in runtimeClasspath.dependenciesInformation) {
                 val id = information.id
                 if (!dependenciesInformation.containsKey(id)) {
@@ -134,6 +134,17 @@ open class GlassJavaExtension(
         }
     }
 
+    fun withInternal(){
+        if (apply("withInternal")) return
+        val configurations = project.configurations
+        val internal = configurations.named(ConfigureJava.CONFIGURATION_INTERNAL_NAME).get()
+        val sourceSets = Extensions.sourceSets(project)
+        for (sourceName in arrayOf(SourceSet.MAIN_SOURCE_SET_NAME, SourceSet.TEST_SOURCE_SET_NAME)) {
+            val sourceSet = sourceSets.named(sourceName).get()
+            sourceSet.compileClasspath += internal
+        }
+    }
+
     fun multiRelease(action: Action<MultiRelease>) {
         if (apply("multiRelease")) return
         val multiRelease = MultiRelease(project)
@@ -203,7 +214,7 @@ open class GlassJavaExtension(
         val version = release.javaLanguageVersion
         val options = task.options
         options.encoding = Charset.defaultCharset().name()
-        if (version.canCompileOrRun(JavaRelease.LEAST_SUPPORTED_VERSION)) {
+        if (version.canCompileOrRun(JavaRelease.LEAST_MULTI_RELEASE_VERSION)) {
             options.compilerArgs.addAll(
                 listOf(
                     "--module-path",

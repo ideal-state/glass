@@ -23,6 +23,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.language.jvm.tasks.ProcessResources
 import team.idealstate.glass.context.util.Extensions
@@ -153,8 +154,8 @@ open class GlassJavaExtension(
     }
 
     private fun configureJavaMultiRelease(releaseContainer: JavaReleaseContainer) {
-        Validates.notEmpty(releaseContainer.artifacts, "artifacts")
         val tasks = project.tasks
+        releaseContainer.artifacts(tasks.named(ConfigureJava.JAR_TASK_NAME, Jar::class.java))
         val multiReleaseClassesTask = MultiReleaseClassesTask.register(project)
         val sourceSets = Extensions.sourceSets(project)
         releaseContainer.all.forEach { release ->

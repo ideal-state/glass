@@ -14,21 +14,10 @@
  *    limitations under the License.
  */
 
-package team.idealstate.glass.data.release
+package team.idealstate.glass.context.release
 
-import org.gradle.api.Action
-import java.io.File
-
-abstract class AbstractRelease<V : Any, O : Any> : Release<V, O> {
-    override fun location(base: File): File = base.resolve(location)
-
-    private var configureOptions: Action<O>? = null
-
-    override fun options(configureOptions: Action<O>) {
-        this.configureOptions = configureOptions
-    }
-
-    override fun apply(options: O) {
-        configureOptions?.execute(options)
-    }
+enum class ReleaseType {
+    MAIN,
+    TEST,
+    EXTEND,
 }

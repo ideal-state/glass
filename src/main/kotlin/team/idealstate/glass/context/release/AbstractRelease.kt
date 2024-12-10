@@ -14,29 +14,21 @@
  *    limitations under the License.
  */
 
-package team.idealstate.glass.data.release
+package team.idealstate.glass.context.release
 
 import org.gradle.api.Action
-import team.idealstate.glass.context.mark.Marked
 import java.io.File
 
-interface Release<V : Any, O : Any> : Marked<V> {
-    val type: ReleaseType
+abstract class AbstractRelease<V : Any, O : Any> : Release<V, O> {
+    override fun location(base: File): File = base.resolve(location)
 
-    fun isReserved(): Boolean =
-        when (type) {
-            ReleaseType.MAIN, ReleaseType.TEST -> true
-            else -> false
-        }
+    private var configureOptions: Action<O>? = null
 
-    val version: V
-        get() = mark
+    override fun options(configureOptions: Action<O>) {
+        this.configureOptions = configureOptions
+    }
 
-    val location: String
-
-    fun location(base: File): File
-
-    fun options(configureOptions: Action<O>)
-
-    fun apply(options: O)
+    override fun apply(options: O) {
+        configureOptions?.execute(options)
+    }
 }

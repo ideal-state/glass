@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package team.idealstate.glass.data.release
+package team.idealstate.glass.context.release
 
 import org.gradle.api.Action
 import team.idealstate.glass.context.mark.Marked

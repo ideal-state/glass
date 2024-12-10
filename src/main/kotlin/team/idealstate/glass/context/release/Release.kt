@@ -14,10 +14,29 @@
  *    limitations under the License.
  */
 
-package team.idealstate.glass.data.release
+package team.idealstate.glass.context.release
 
-enum class ReleaseType {
-    MAIN,
-    TEST,
-    EXTEND,
+import org.gradle.api.Action
+import team.idealstate.glass.context.mark.Marked
+import java.io.File
+
+interface Release<V : Any, O : Any> : Marked<V> {
+    val type: ReleaseType
+
+    fun isReserved(): Boolean =
+        when (type) {
+            ReleaseType.MAIN, ReleaseType.TEST -> true
+            else -> false
+        }
+
+    val version: V
+        get() = mark
+
+    val location: String
+
+    fun location(base: File): File
+
+    fun options(configureOptions: Action<O>)
+
+    fun apply(options: O)
 }

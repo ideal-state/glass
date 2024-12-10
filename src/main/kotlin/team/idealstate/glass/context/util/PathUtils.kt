@@ -16,6 +16,6 @@ object PathUtils {
 
     @JvmStatic
     fun normalize(pathName: String): String {
-        return pathName.replace(WINDOWS_PATH_DELIMITER, NORMAL_DELIMITER)
+        return pathName.replace(WINDOWS_PATH_DELIMITER, NORMAL_DELIMITER).trim(NORMAL_DELIMITER)
     }
 }

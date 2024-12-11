@@ -21,9 +21,9 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import team.idealstate.glass.context.mark.MarkedFactory
-import team.idealstate.glass.context.util.Extensions
 import team.idealstate.glass.context.release.AbstractRelease
 import team.idealstate.glass.context.release.ReleaseType
+import team.idealstate.glass.context.util.Extensions
 
 class JavaRelease(
     private val project: Project,

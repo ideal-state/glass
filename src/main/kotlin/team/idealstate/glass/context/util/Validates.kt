@@ -16,6 +16,8 @@
 
 package team.idealstate.glass.context.util
 
+import java.io.File
+
 object Validates {
     @JvmStatic
     fun <V : Any> isPresent(
@@ -24,6 +26,33 @@ object Validates {
     ): V {
         if (value == null) throw IllegalStateException("$name not yet set.")
         return value
+    }
+
+    @JvmStatic
+    fun isDirectory(
+        file: File,
+        name: String,
+    ): File {
+        if (file.exists() && !file.isDirectory) throw IllegalStateException("$name is not a directory.")
+        return file
+    }
+
+    @JvmStatic
+    fun isAbsolute(
+        file: File,
+        name: String,
+    ): File {
+        if (!file.isAbsolute) throw IllegalStateException("$name is not a absolute path.")
+        return file
+    }
+
+    @JvmStatic
+    fun isRelative(
+        file: File,
+        name: String,
+    ): File {
+        if (file.isAbsolute) throw IllegalStateException("$name is not a relative path.")
+        return file
     }
 
     @JvmStatic

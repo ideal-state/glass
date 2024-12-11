@@ -24,9 +24,9 @@ import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import team.idealstate.glass.context.mark.MarkedContainer
 import team.idealstate.glass.context.mark.MarkedProvider
-import team.idealstate.glass.context.util.Validates
 import team.idealstate.glass.context.release.AbstractReleaseContainer
 import team.idealstate.glass.context.release.ReleaseType
+import team.idealstate.glass.context.util.Validates
 import team.idealstate.glass.plugin.java.data.JavaRelease.Companion.MAIN_NAME
 import team.idealstate.glass.plugin.java.data.JavaRelease.Companion.TEST_NAME
 

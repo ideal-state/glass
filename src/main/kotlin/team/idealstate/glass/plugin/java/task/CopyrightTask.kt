@@ -16,6 +16,7 @@
 
 package team.idealstate.glass.plugin.java.task
 
+import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Copy
@@ -35,6 +36,18 @@ open class CopyrightTask : Copy() {
 
         @JvmStatic
         fun of(project: Project): TaskProvider<CopyrightTask> = project.tasks.named(NAME, CopyrightTask::class.java)
+
+        @JvmStatic
+        fun register(
+            project: Project,
+            action: Action<in CopyrightTask>,
+        ): TaskProvider<CopyrightTask> = project.tasks.register(NAME, CopyrightTask::class.java, action)
+
+        @JvmStatic
+        fun of(
+            project: Project,
+            action: Action<in CopyrightTask>,
+        ): TaskProvider<CopyrightTask> = project.tasks.named(NAME, CopyrightTask::class.java, action)
     }
 
     init {

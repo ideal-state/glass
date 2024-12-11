@@ -20,6 +20,7 @@ object ClassUtils {
     const val CLASS_DELIMITER = '.'
     const val INTERNAL_DELIMITER = '/'
     const val CLASS_FILE_EXTENSION_NAME = ".class"
+    const val SERVICES_DIR_PATH_NAME = "META-INF/services/"
     const val MULTI_RELEASE_DIR_PATH_NAME = "META-INF/versions/"
     const val LEAST_MULTI_RELEASE_VERSION = 9
 

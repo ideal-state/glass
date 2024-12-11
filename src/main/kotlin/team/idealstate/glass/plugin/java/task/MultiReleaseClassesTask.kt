@@ -16,6 +16,7 @@
 
 package team.idealstate.glass.plugin.java.task
 
+import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Copy
@@ -33,6 +34,18 @@ open class MultiReleaseClassesTask : Copy() {
 
         @JvmStatic
         fun of(project: Project): TaskProvider<MultiReleaseClassesTask> = project.tasks.named(NAME, MultiReleaseClassesTask::class.java)
+
+        @JvmStatic
+        fun register(
+            project: Project,
+            action: Action<in MultiReleaseClassesTask>,
+        ): TaskProvider<MultiReleaseClassesTask> = project.tasks.register(NAME, MultiReleaseClassesTask::class.java, action)
+
+        @JvmStatic
+        fun of(
+            project: Project,
+            action: Action<in MultiReleaseClassesTask>,
+        ): TaskProvider<MultiReleaseClassesTask> = project.tasks.named(NAME, MultiReleaseClassesTask::class.java, action)
     }
 
     init {

@@ -18,6 +18,7 @@ package team.idealstate.glass.plugin.java.task
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.file.RegularFile
@@ -41,6 +42,18 @@ open class DependenciesInformationTask : DefaultTask() {
         @JvmStatic
         fun of(project: Project): TaskProvider<DependenciesInformationTask> =
             project.tasks.named(NAME, DependenciesInformationTask::class.java)
+
+        @JvmStatic
+        fun register(
+            project: Project,
+            action: Action<in DependenciesInformationTask>,
+        ): TaskProvider<DependenciesInformationTask> = project.tasks.register(NAME, DependenciesInformationTask::class.java, action)
+
+        @JvmStatic
+        fun of(
+            project: Project,
+            action: Action<in DependenciesInformationTask>,
+        ): TaskProvider<DependenciesInformationTask> = project.tasks.named(NAME, DependenciesInformationTask::class.java, action)
     }
 
     @OutputFile

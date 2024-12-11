@@ -16,6 +16,7 @@
 
 package team.idealstate.glass.plugin.java.task
 
+import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileTree
@@ -93,6 +94,18 @@ open class MultiReleaseClassesSourceTask : DefaultTask() {
             project.tasks.named(
                 nameof(release),
                 MultiReleaseClassesSourceTask::class.java,
+            )
+
+        @JvmStatic
+        fun of(
+            project: Project,
+            release: JavaRelease,
+            action: Action<in MultiReleaseClassesSourceTask>,
+        ): TaskProvider<MultiReleaseClassesSourceTask> =
+            project.tasks.named(
+                nameof(release),
+                MultiReleaseClassesSourceTask::class.java,
+                action,
             )
     }
 

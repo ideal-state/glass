@@ -30,6 +30,13 @@ open class SourcesTask : Copy() {
         const val NAME = "sources"
 
         @JvmStatic
+        fun register(project: Project): TaskProvider<SourcesTask> =
+            project.tasks.register(
+                NAME,
+                SourcesTask::class.java,
+            )
+
+        @JvmStatic
         fun register(
             project: Project,
             action: Action<in SourcesTask>,
@@ -42,6 +49,12 @@ open class SourcesTask : Copy() {
 
         @JvmStatic
         fun of(project: Project): TaskProvider<SourcesTask> = project.tasks.named(NAME, SourcesTask::class.java)
+
+        @JvmStatic
+        fun of(
+            project: Project,
+            action: Action<in SourcesTask>,
+        ): TaskProvider<SourcesTask> = project.tasks.named(NAME, SourcesTask::class.java, action)
     }
 
     init {

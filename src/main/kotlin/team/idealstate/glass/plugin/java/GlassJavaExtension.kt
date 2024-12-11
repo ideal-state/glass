@@ -20,23 +20,26 @@ import dependenciesInformation
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.language.jvm.tasks.ProcessResources
-import team.idealstate.glass.context.util.Extensions
-import team.idealstate.glass.context.util.Validates
-import team.idealstate.glass.data.dependency.ScopedDependencyInformation
 import team.idealstate.glass.context.release.MultiRelease
+import team.idealstate.glass.context.util.Extensions
+import team.idealstate.glass.data.dependency.ScopedDependencyInformation
 import team.idealstate.glass.plugin.java.data.JavaRelease
 import team.idealstate.glass.plugin.java.data.JavaReleaseContainer
 import team.idealstate.glass.plugin.java.task.CopyrightTask
 import team.idealstate.glass.plugin.java.task.DependenciesInformationTask
 import team.idealstate.glass.plugin.java.task.MultiReleaseClassesSourceTask
 import team.idealstate.glass.plugin.java.task.MultiReleaseClassesTask
+import team.idealstate.glass.plugin.java.task.RelocateTask
 import team.idealstate.glass.plugin.java.task.SourcesTask
+import team.idealstate.glass.plugin.java.task.UnzipInternalDependenciesTask
 import java.nio.charset.Charset
 
 open class GlassJavaExtension(
@@ -44,6 +47,12 @@ open class GlassJavaExtension(
 ) {
     companion object {
         const val NAME = "glass"
+        const val FEATURE_WITH_COPYRIGHT = "withCopyright"
+        const val FEATURE_WITH_DEPENDENCIES_INFORMATION = "withDependenciesInformation"
+        const val FEATURE_WITH_INTERNAL = "withInternal"
+        const val FEATURE_WITH_SOURCES_JAR = "withSourcesJar"
+        const val FEATURE_WITH_JAVADOC_JAR = "withJavadocJar"
+        const val FEATURE_MULTI_RELEASE = "multiRelease"
 
         @JvmStatic
         fun register(project: Project): GlassJavaExtension = project.extensions.create(NAME, GlassJavaExtension::class.java, project)
@@ -73,18 +82,33 @@ open class GlassJavaExtension(
         }
     }
 
-    private val appliedSteps = mutableMapOf<String, Boolean>()
+    val module: Property<String> =
+        project.objects.property(String::class.java).apply {
+            set(project.provider { project.group.toString() })
+        }
+    private val enabledFeatures = mutableMapOf<String, Boolean>()
 
-    private fun apply(step: String): Boolean {
-        val applied = appliedSteps[step] ?: false
+    private fun enable(feature: String): Boolean {
+        val applied = enabledFeatures[feature] ?: false
         if (!applied) {
-            appliedSteps[step] = true
+            enabledFeatures[feature] = true
         }
         return applied
     }
 
+    private fun mustBefore(
+        feature: String,
+        vararg others: String,
+    ) {
+        others.forEach { other ->
+            if (enabledFeatures[other] == true) {
+                throw IllegalStateException("Feature $feature must be enabled before $other.")
+            }
+        }
+    }
+
     fun withCopyright() {
-        if (apply("withCopyright")) return
+        if (enable(FEATURE_WITH_COPYRIGHT)) return
         val copyrightTask = CopyrightTask.register(project)
         project.tasks.named("processResources", ProcessResources::class.java) {
             it.dependsOn(copyrightTask)
@@ -98,7 +122,7 @@ open class GlassJavaExtension(
     }
 
     fun withDependenciesInformation() {
-        if (apply("withDependenciesInformation")) return
+        if (enable(FEATURE_WITH_DEPENDENCIES_INFORMATION)) return
         val dependenciesInformationTask = DependenciesInformationTask.register(project)
         project.tasks.named("processResources", ProcessResources::class.java) {
             it.dependsOn(dependenciesInformationTask)
@@ -122,32 +146,52 @@ open class GlassJavaExtension(
     }
 
     fun withSourcesJar() {
-        if (apply("withSourcesJar")) return
+        if (enable(FEATURE_WITH_SOURCES_JAR)) return
         project.tasks.named("assemble") {
             it.dependsOn(ConfigureJava.SOURCES_JAR_TASK_NAME)
         }
     }
 
     fun withJavadocJar() {
-        if (apply("withJavadocJar")) return
+        if (enable(FEATURE_WITH_JAVADOC_JAR)) return
         project.tasks.named("assemble") {
             it.dependsOn(ConfigureJava.JAVADOC_JAR_TASK_NAME)
         }
     }
 
     fun withInternal() {
-        if (apply("withInternal")) return
+        if (enable(FEATURE_WITH_INTERNAL)) return
+        mustBefore(FEATURE_WITH_INTERNAL, FEATURE_MULTI_RELEASE)
         val configurations = project.configurations
         val internal = configurations.named(ConfigureJava.CONFIGURATION_INTERNAL_NAME).get()
         val sourceSets = Extensions.sourceSets(project)
-        for (sourceName in arrayOf(SourceSet.MAIN_SOURCE_SET_NAME, SourceSet.TEST_SOURCE_SET_NAME)) {
-            val sourceSet = sourceSets.named(sourceName).get()
+        val mainSourceSet = sourceSets.named(SourceSet.MAIN_SOURCE_SET_NAME).get()
+        val testSourceSet = sourceSets.named(SourceSet.TEST_SOURCE_SET_NAME).get()
+        for (sourceSet in arrayOf(mainSourceSet, testSourceSet)) {
             sourceSet.compileClasspath += internal
+        }
+        val unzipInternalDependenciesTask = UnzipInternalDependenciesTask.register(project)
+        val relocateTask =
+            RelocateTask.register(project) {
+                it.source(mainSourceSet)
+            }
+        project.tasks.named(ConfigureJava.JAR_TASK_NAME, Jar::class.java) {
+            it.dependsOn(unzipInternalDependenciesTask, relocateTask)
+            it.from(unzipInternalDependenciesTask) { copy ->
+                copy.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            }
+
+            it.eachFile { details ->
+                val relocatedPath = relocateTask.get().getRelocatedPath(details.file)
+                if (relocatedPath != null) {
+                    details.path = relocatedPath
+                }
+            }
         }
     }
 
     fun multiRelease(action: Action<MultiRelease>) {
-        if (apply("multiRelease")) return
+        if (enable(FEATURE_MULTI_RELEASE)) return
         val multiRelease = MultiRelease(project)
         action.execute(multiRelease)
         configureJavaMultiRelease(multiRelease.java)
@@ -184,12 +228,17 @@ open class GlassJavaExtension(
                 }
             }
 
-            tasks.named(sourceSet.compileJavaTaskName, JavaCompile::class.java) {
-                it.doFirst { _ ->
-                    val excludes = MultiReleaseClassesSourceTask.sourceSetJavaRelativeFiles(sourceSet, project.objects)
-                    populateMultiReleaseCompileJavaTaskSources(sourceSets, releaseContainer, release, excludes, it)
+            val compileJavaTask =
+                tasks.named(sourceSet.compileJavaTaskName, JavaCompile::class.java) {
+                    it.doFirst { _ ->
+                        val excludes = MultiReleaseClassesSourceTask.sourceSetJavaRelativeFiles(sourceSet, project.objects)
+                        populateMultiReleaseCompileJavaTaskSources(sourceSets, releaseContainer, release, excludes, it)
+                    }
+                    configureMultiReleaseCompileJavaTask(release, it)
                 }
-                configureMultiReleaseCompileJavaTask(release, it)
+
+            RelocateTask.of(project) {
+                it.source(sourceSet)
             }
 
             MultiReleaseClassesSourceTask.register(project, release)

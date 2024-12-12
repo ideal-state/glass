@@ -70,7 +70,7 @@ class RelocateJob(
     override fun execute(): RelocateJobResult {
         val file = this.file
         var path = this.path
-        val relocationDetail = RelocationJobDetail(file, path, false)
+        val relocationDetail = RelocationJobDetail(file, path, path, false)
         val excludes = LinkedList(this.excludes.get())
         val exclude = excludes.any { it.exclude(relocationDetail) }
         if (exclude) {

@@ -22,9 +22,17 @@ import java.io.File
 
 class RelocationJobDetail(
     override val file: File,
+    sourcePath: String,
     path: String,
     exclude: Boolean,
 ) : RelocateJobDetail {
+    override var sourcePath: String = sourcePath
+        set(value) {
+            val normalized = PathUtils.normalize(value)
+            Validates.isRelative(File(normalized), "sourcePath")
+            field = normalized
+        }
+
     override var path: String = path
         set(value) {
             val normalized = PathUtils.normalize(value)
@@ -38,5 +46,5 @@ class RelocationJobDetail(
         this.exclude = true
     }
 
-    fun toRelocateResult(): RelocateJobResult = RelocateJobResult(file, path, exclude)
+    fun toRelocateResult(): RelocateJobResult = RelocateJobResult(file, sourcePath, path, exclude)
 }

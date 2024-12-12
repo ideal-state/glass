@@ -14,13 +14,13 @@
  *    limitations under the License.
  */
 
-package team.idealstate.glass.plugin.java.task.data.relocate
+package team.idealstate.glass.plugin.java.task.data
 
-import java.io.File
+import team.idealstate.glass.context.filter.Filter
 
-interface RelocateJobDetail {
-    val file: File
-    val sourcePath: String
-    val path: String
-    val exclude: Boolean
+@FunctionalInterface
+interface Skip<T> : Filter<T> {
+    override fun filter(it: T): Boolean = !skip(it)
+
+    fun skip(it: T): Boolean
 }

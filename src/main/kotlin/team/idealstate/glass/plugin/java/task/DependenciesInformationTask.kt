@@ -33,7 +33,7 @@ import team.idealstate.glass.plugin.java.GlassJavaExtension
 open class DependenciesInformationTask : DefaultTask() {
     companion object {
         const val NAME = "dependenciesInformation"
-        const val ROOT_NAME = "dependencies-information.json"
+        const val ROOT_NAME = "dependencies.json"
 
         @JvmStatic
         fun register(project: Project): TaskProvider<DependenciesInformationTask> =

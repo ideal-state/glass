@@ -32,7 +32,7 @@ import java.util.concurrent.TimeoutException
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
-abstract class ParallelTask<K: Any, T: Any, R, J: Job<K, T, R>, C: JobContainer<K, T, R, J>> : DefaultTask() {
+abstract class ParallelTask<K : Any, T : Any, R, J : Job<K, T, R>, C : JobContainer<K, T, R, J>> : DefaultTask() {
     companion object {
         const val DEFAULT_JOB_TIMEOUT = 30L
 

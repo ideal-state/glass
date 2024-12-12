@@ -16,9 +16,10 @@
 
 package team.idealstate.glass.plugin.java.task.data
 
+import team.idealstate.glass.context.util.ClassUtils
 import java.io.File
 
-data class JavaClassFile(
+open class JavaClassFile(
     override val baseDir: File,
     override val file: File,
     override val release: Int?,
@@ -32,10 +33,15 @@ data class JavaClassFile(
         MODULE_INFO,
     }
 
-    val type: Type =
-        when (fileName) {
-            "package-info.class" -> Type.PACKAGE_INFO
-            "module-info.class" -> Type.MODULE_INFO
-            else -> Type.NORMAL
+    val type: Type
+        get() {
+            val fileName = this.fileName
+            if (ClassUtils.maybeModuleInfoFile(fileName)) {
+                return Type.MODULE_INFO
+            }
+            if (ClassUtils.maybePackageInfoFile(fileName)) {
+                return Type.PACKAGE_INFO
+            }
+            return Type.NORMAL
         }
 }

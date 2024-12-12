@@ -19,6 +19,7 @@ package team.idealstate.glass.task.parallel
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.WorkResult
 import team.idealstate.glass.task.ParallelTask
 import team.idealstate.glass.task.parallel.data.CopyJob
 import team.idealstate.glass.task.parallel.data.CopyJobContainer
@@ -26,7 +27,7 @@ import team.idealstate.glass.task.parallel.data.CopyJobKey
 import java.io.File
 
 @CacheableTask
-abstract class ParallelCopy : ParallelTask<CopyJobKey, File, CopyJob, CopyJobContainer>() {
+abstract class ParallelCopy : ParallelTask<CopyJobKey, File, WorkResult, CopyJob, CopyJobContainer>() {
     @OutputDirectory
     val destinationDir: DirectoryProperty = project.objects.directoryProperty()
 

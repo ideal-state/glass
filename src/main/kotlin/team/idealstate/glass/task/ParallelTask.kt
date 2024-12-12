@@ -26,12 +26,13 @@ import org.gradle.api.tasks.TaskAction
 import team.idealstate.glass.context.parallel.Job
 import team.idealstate.glass.context.parallel.JobContainer
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
-abstract class ParallelTask<K : Any, T : Any, J : Job<K, T>, C : JobContainer<K, T, J>> : DefaultTask() {
+abstract class ParallelTask<K: Any, T: Any, R, J: Job<K, T, R>, C: JobContainer<K, T, J>> : DefaultTask() {
     companion object {
         const val DEFAULT_JOB_TIMEOUT = 30L
 
@@ -44,6 +45,9 @@ abstract class ParallelTask<K : Any, T : Any, J : Job<K, T>, C : JobContainer<K,
 
     @get:Internal
     protected abstract val jobs: C
+
+    @get:Internal
+    protected val jobResults = ConcurrentSkipListSet<R>()
 
     init {
         group = "parallel"
@@ -83,7 +87,8 @@ abstract class ParallelTask<K : Any, T : Any, J : Job<K, T>, C : JobContainer<K,
                 lock.lock()
             }
             try {
-                job.execute()
+                val jobResult = job.execute()
+                jobResult?.apply(jobResults::add)
             } finally {
                 lock.unlock()
             }

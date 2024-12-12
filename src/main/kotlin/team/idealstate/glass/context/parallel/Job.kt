@@ -18,8 +18,8 @@ package team.idealstate.glass.context.parallel
 
 import team.idealstate.glass.context.mark.Marked
 
-interface Job<K : Any, T : Any> : Marked<T> {
+interface Job<K : Any, T : Any, R> : Marked<T> {
     val key: K
 
-    fun execute(): Boolean
+    fun execute(): R
 }

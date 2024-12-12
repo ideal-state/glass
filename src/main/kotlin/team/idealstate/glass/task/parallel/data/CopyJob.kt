@@ -19,6 +19,8 @@ package team.idealstate.glass.task.parallel.data
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.file.FileCopyDetails
+import org.gradle.api.tasks.WorkResult
+import org.gradle.api.tasks.WorkResults
 import team.idealstate.glass.context.mark.MarkedFactory
 import team.idealstate.glass.context.parallel.Job
 import team.idealstate.glass.context.util.Validates
@@ -28,7 +30,7 @@ class CopyJob(
     private val project: Project,
     destinationBaseDir: File,
     mark: File,
-) : Job<CopyJobKey, File> {
+) : Job<CopyJobKey, File, WorkResult> {
     class Factory(
         private val project: Project,
         private val destinationBaseDir: File,
@@ -61,15 +63,15 @@ class CopyJob(
         eachFiles.add(action)
     }
 
-    override fun execute(): Boolean {
+    override fun execute(): WorkResult {
         if (_from.isEmpty()) {
-            return false
+            return WorkResults.didWork(false)
         }
         return project
             .copy {
                 it.into(into)
                 _from.forEach(it::from)
                 eachFiles.forEach(it::eachFile)
-            }.didWork
+            }
     }
 }

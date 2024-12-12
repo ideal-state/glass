@@ -173,18 +173,25 @@ open class GlassJavaExtension(
         val unzipInternalDependenciesTask = UnzipInternalDependenciesTask.register(project)
         val relocateTask =
             RelocateTask.register(project) {
+                it.dependsOn(unzipInternalDependenciesTask)
                 it.source(mainSourceSet)
             }
         project.tasks.named(ConfigureJava.JAR_TASK_NAME, Jar::class.java) {
             it.dependsOn(unzipInternalDependenciesTask, relocateTask)
             it.from(unzipInternalDependenciesTask) { copy ->
-                copy.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+                copy.includeEmptyDirs = false
+                copy.duplicatesStrategy = DuplicatesStrategy.WARN
             }
+            it.from(relocateTask)
 
             it.eachFile { details ->
-                val relocatedPath = relocateTask.get().getRelocatedPath(details.file)
-                if (relocatedPath != null) {
-                    details.path = relocatedPath
+                val relocateResult = relocateTask.get().getRelocateResult(details.file)
+                if (relocateResult != null) {
+                    if (relocateResult.exclude) {
+                        details.exclude()
+                    } else {
+                        details.path = relocateResult.path
+                    }
                 }
             }
         }
@@ -228,17 +235,12 @@ open class GlassJavaExtension(
                 }
             }
 
-            val compileJavaTask =
-                tasks.named(sourceSet.compileJavaTaskName, JavaCompile::class.java) {
-                    it.doFirst { _ ->
-                        val excludes = MultiReleaseClassesSourceTask.sourceSetJavaRelativeFiles(sourceSet, project.objects)
-                        populateMultiReleaseCompileJavaTaskSources(sourceSets, releaseContainer, release, excludes, it)
-                    }
-                    configureMultiReleaseCompileJavaTask(release, it)
+            tasks.named(sourceSet.compileJavaTaskName, JavaCompile::class.java) {
+                it.doFirst { _ ->
+                    val excludes = MultiReleaseClassesSourceTask.sourceSetJavaRelativeFiles(sourceSet, project.objects)
+                    populateMultiReleaseCompileJavaTaskSources(sourceSets, releaseContainer, release, excludes, it)
                 }
-
-            RelocateTask.of(project) {
-                it.source(sourceSet)
+                configureMultiReleaseCompileJavaTask(release, it)
             }
 
             MultiReleaseClassesSourceTask.register(project, release)
@@ -246,6 +248,19 @@ open class GlassJavaExtension(
             multiReleaseClassesTask.configure {
                 it.source(release)
             }
+        }
+
+        RelocateTask.of(project) {
+            it.dependsOn(multiReleaseClassesTask)
+            it.source(
+                project.provider {
+                    project.objects
+                        .directoryProperty()
+                        .apply {
+                            set(multiReleaseClassesTask.get().destinationDir)
+                        }.get()
+                },
+            )
         }
 
         releaseContainer.artifacts.forEach { artifact ->

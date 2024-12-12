@@ -18,6 +18,7 @@ package team.idealstate.glass.task.parallel.data
 
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.tasks.WorkResult
 import team.idealstate.glass.context.mark.MarkedContainer
 import team.idealstate.glass.context.mark.MarkedProvider
 import team.idealstate.glass.context.parallel.AbstractJobContainer
@@ -26,7 +27,7 @@ import java.io.File
 class CopyJobContainer(
     project: Project,
     destinationBaseDir: File,
-) : AbstractJobContainer<CopyJobKey, File, CopyJob>(MarkedContainer.create(CopyJob.Factory(project, destinationBaseDir))) {
+) : AbstractJobContainer<CopyJobKey, File, WorkResult, CopyJob>(MarkedContainer.create(CopyJob.Factory(project, destinationBaseDir))) {
     fun into(
         into: File,
         action: Action<in CopyJob>,

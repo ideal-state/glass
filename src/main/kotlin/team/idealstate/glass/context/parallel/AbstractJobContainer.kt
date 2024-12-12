@@ -18,7 +18,7 @@ package team.idealstate.glass.context.parallel
 
 import team.idealstate.glass.context.mark.MarkedContainer
 
-abstract class AbstractJobContainer<K : Any, T : Any, J : Job<K, T>>(
+abstract class AbstractJobContainer<K : Any, T : Any, R, J : Job<K, T, R>>(
     private val delegate: MarkedContainer<T, J>,
-) : JobContainer<K, T, J>,
+) : JobContainer<K, T, R, J>,
     MarkedContainer<T, J> by delegate

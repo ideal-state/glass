@@ -18,14 +18,14 @@ package team.idealstate.glass.plugin.java.task
 
 import org.gradle.api.Action
 import org.gradle.api.Project
-import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.work.DisableCachingByDefault
 import team.idealstate.glass.context.util.PathUtils
 import team.idealstate.glass.plugin.java.ConfigureJava
 import team.idealstate.glass.task.parallel.ParallelCopy
 import java.io.File
 
-@CacheableTask
+@DisableCachingByDefault
 open class UnzipInternalDependenciesTask : ParallelCopy() {
     companion object {
         const val NAME = "unzipInternalDependencies"

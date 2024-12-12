@@ -26,6 +26,7 @@ object ClassUtils {
     const val SERVICES_DIR_PATH_NAME = "META-INF/services/"
     const val MULTI_RELEASE_DIR_PATH_NAME = "META-INF/versions/"
     const val LEAST_MULTI_RELEASE_VERSION = 9
+    const val DIFF_BETWEEN_VERSION_AND_RELEASE = 44
 
     @JvmStatic
     fun internalize(
@@ -67,4 +68,8 @@ object ClassUtils {
 
     @JvmStatic
     fun maybePackageInfoFile(fileName: String): Boolean = fileName.endsWith(PACKAGE_INFO_FILE_NAME)
+
+    fun version(release: Int): Int = release + DIFF_BETWEEN_VERSION_AND_RELEASE
+
+    fun release(version: Int): Int = version - DIFF_BETWEEN_VERSION_AND_RELEASE
 }

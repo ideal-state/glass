@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package team.idealstate.glass.context.relocate.bytecode
+package team.idealstate.glass.plugin.java.task.data.relocate
 
 import team.idealstate.glass.context.relocate.ClassReferenceRelocator
 import team.idealstate.glass.context.relocate.Relocator

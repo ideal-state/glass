@@ -20,6 +20,8 @@ object ClassUtils {
     const val CLASS_DELIMITER = '.'
     const val INTERNAL_DELIMITER = '/'
     const val CLASS_FILE_EXTENSION_NAME = ".class"
+    const val MODULE_INFO_FILE_NAME = "module-info.class"
+    const val PACKAGE_INFO_FILE_NAME = "package-info.class"
     const val MANIFEST_FILE_PATH_NAME = "META-INF/MANIFEST.MF"
     const val SERVICES_DIR_PATH_NAME = "META-INF/services/"
     const val MULTI_RELEASE_DIR_PATH_NAME = "META-INF/versions/"
@@ -59,4 +61,10 @@ object ClassUtils {
 
     @JvmStatic
     fun maybeClassFile(fileName: String): Boolean = fileName.endsWith(CLASS_FILE_EXTENSION_NAME)
+
+    @JvmStatic
+    fun maybeModuleInfoFile(fileName: String): Boolean = fileName.endsWith(MODULE_INFO_FILE_NAME)
+
+    @JvmStatic
+    fun maybePackageInfoFile(fileName: String): Boolean = fileName.endsWith(PACKAGE_INFO_FILE_NAME)
 }

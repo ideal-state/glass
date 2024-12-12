@@ -14,22 +14,26 @@
  *    limitations under the License.
  */
 
-package team.idealstate.glass.plugin.java.task.data
+package team.idealstate.glass.plugin.java.task.data.relocate
 
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.provider.ListProperty
+import team.idealstate.glass.context.filter.Exclude
 import team.idealstate.glass.context.mark.MarkedContainer
 import team.idealstate.glass.context.mark.MarkedProvider
 import team.idealstate.glass.context.parallel.AbstractJobContainer
 import team.idealstate.glass.context.relocate.Relocator
+import team.idealstate.glass.plugin.java.task.data.Skip
 import java.io.File
 
 class RelocateJobContainer(
     project: Project,
+    excludes: ListProperty<Exclude<in RelocateJobDetail>>,
+    skips: ListProperty<Skip<in RelocateJobDetail>>,
     relocators: ListProperty<Relocator>,
-) : AbstractJobContainer<RelocateJobKey, File, RelocateJob>(
-        MarkedContainer.create(RelocateJob.Factory(project, relocators)),
+) : AbstractJobContainer<RelocateJobKey, File, RelocateJobResult, RelocateJob>(
+        MarkedContainer.create(RelocateJob.Factory(project, excludes, skips, relocators)),
     ) {
     fun relocate(
         file: File,

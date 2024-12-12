@@ -14,26 +14,12 @@
  *    limitations under the License.
  */
 
-package team.idealstate.glass.plugin.java.task.data
+package team.idealstate.glass.plugin.java.task.data.relocate
 
-import team.idealstate.glass.context.util.PathUtils
 import java.io.File
 
-class RelocateJobKey(
-    file: File,
-) {
-    private val path = PathUtils.normalize(file.absolutePath)
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as RelocateJobKey
-
-        return path == other.path
-    }
-
-    override fun hashCode(): Int = path.hashCode()
-
-    override fun toString(): String = "RelocateJobKey(path='$path')"
+interface RelocateJobDetail {
+    val file: File
+    val path: String
+    val exclude: Boolean
 }

@@ -2,9 +2,9 @@ package team.idealstate.glass.context.filter
 
 @FunctionalInterface
 interface Include<T>: Filter<T> {
-    override fun filter(t: T): Boolean {
-        return include(t)
+    override fun filter(it: T): Boolean {
+        return include(it)
     }
 
-    fun include(t: T): Boolean
+    fun include(it: T): Boolean
 }

@@ -49,14 +49,16 @@ open class ConfigureMavenPublish : Configure() {
                 pom.withXml { xml ->
                     val xmlNode = xml.asNode()
                     removeChildren(xmlNode, "dependencies")
-                    val dependenciesNode = xmlNode.appendNode("dependencies")
                     val dependencies = GlassJavaExtension.dependenciesInformation(project)
-                    dependencies.forEach { information ->
-                        val dependencyNode = dependenciesNode.appendNode("dependency")
-                        dependencyNode.appendNode("groupId", information.group)
-                        dependencyNode.appendNode("artifactId", information.name)
-                        dependencyNode.appendNode("version", information.version)
-                        dependencyNode.appendNode("scope", information.scope)
+                    if (dependencies.isNotEmpty()) {
+                        val dependenciesNode = xmlNode.appendNode("dependencies")
+                        dependencies.forEach { information ->
+                            val dependencyNode = dependenciesNode.appendNode("dependency")
+                            dependencyNode.appendNode("groupId", information.group)
+                            dependencyNode.appendNode("artifactId", information.name)
+                            dependencyNode.appendNode("version", information.version)
+                            dependencyNode.appendNode("scope", information.scope)
+                        }
                     }
                 }
             }

@@ -33,9 +33,7 @@ open class ConfigureMavenPublish : Configure() {
 
     override fun apply() {
         val publishing = Extensions.publishing(project)
-        publishing.repositories.apply {
-            project(project)
-        }
+        publishing.repositories.project()
         publishing.publications.main {
             val tasks = project.tasks
             val pluginManager = project.pluginManager

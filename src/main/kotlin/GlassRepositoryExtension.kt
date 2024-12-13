@@ -17,49 +17,29 @@
 @file:Suppress("unused", "UnusedReceiverParameter")
 
 import org.gradle.api.Action
-import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import team.idealstate.glass.GlassContext
+import team.idealstate.glass.data.CredentialsProvider
+import team.idealstate.glass.data.repository.EnvironmentsMavenArtifactRepositoryCredentialsProvider
+import team.idealstate.glass.data.repository.PropertiesMavenArtifactRepositoryCredentialsProvider
 import java.net.URI
 
-private const val REPOSITORY_PROPERTY_PREFIX = "glass.publish"
-private const val REPOSITORY_LOGIN_KEY = "key"
-private const val REPOSITORY_LOGIN_SECRET = "secret"
-private const val REPOSITORY_NAME_DELIMITER = '-'
+fun MavenArtifactRepository.environments(): CredentialsProvider<out MavenArtifactRepository> =
+    EnvironmentsMavenArtifactRepositoryCredentialsProvider(this)
 
-fun MavenArtifactRepository.login() {
-    val id = name.replace(' ', REPOSITORY_NAME_DELIMITER).lowercase()
-    credentials {
-        it.username =
-            System.getProperty(
-                "$REPOSITORY_PROPERTY_PREFIX.$id.$REPOSITORY_LOGIN_KEY",
-            )
-        it.password =
-            System.getProperty(
-                "$REPOSITORY_PROPERTY_PREFIX.$id.$REPOSITORY_LOGIN_SECRET",
-            )
-    }
+fun MavenArtifactRepository.properties(): CredentialsProvider<out MavenArtifactRepository> {
+    val project = GlassContext.project
+    return PropertiesMavenArtifactRepositoryCredentialsProvider(project, this)
 }
 
-fun MavenArtifactRepository.login(project: Project) {
-    val id = name.replace(' ', REPOSITORY_NAME_DELIMITER).lowercase()
-    credentials {
-        it.username =
-            project.property(
-                "$REPOSITORY_PROPERTY_PREFIX.$id.$REPOSITORY_LOGIN_KEY",
-            ) as String
-        it.password =
-            project.property(
-                "$REPOSITORY_PROPERTY_PREFIX.$id.$REPOSITORY_LOGIN_SECRET",
-            ) as String
-    }
-}
-
-fun RepositoryHandler.project(project: Project): MavenArtifactRepository =
-    maven {
+fun RepositoryHandler.project(): MavenArtifactRepository {
+    val project = GlassContext.project
+    return maven {
         it.name = "Project"
         it.url = project.uri("file://${project.projectDir}/build/repository")
     }
+}
 
 fun RepositoryHandler.aliyun(): MavenArtifactRepository =
     maven {

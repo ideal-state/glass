@@ -22,34 +22,35 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import java.net.URI
 
-private const val PREFIX = "glass.publish"
-private const val KEY = "key"
-private const val SECRET = "secret"
+private const val REPOSITORY_PROPERTY_PREFIX = "glass.publish"
+private const val REPOSITORY_LOGIN_KEY = "key"
+private const val REPOSITORY_LOGIN_SECRET = "secret"
+private const val REPOSITORY_NAME_DELIMITER = '-'
 
 fun MavenArtifactRepository.login() {
-    val id = name.replace(' ', '-').lowercase()
+    val id = name.replace(' ', REPOSITORY_NAME_DELIMITER).lowercase()
     credentials {
         it.username =
             System.getProperty(
-                "$PREFIX.$id.$KEY",
+                "$REPOSITORY_PROPERTY_PREFIX.$id.$REPOSITORY_LOGIN_KEY",
             )
         it.password =
             System.getProperty(
-                "$PREFIX.$id.$SECRET",
+                "$REPOSITORY_PROPERTY_PREFIX.$id.$REPOSITORY_LOGIN_SECRET",
             )
     }
 }
 
 fun MavenArtifactRepository.login(project: Project) {
-    val id = name.replace(' ', '-').lowercase()
+    val id = name.replace(' ', REPOSITORY_NAME_DELIMITER).lowercase()
     credentials {
         it.username =
             project.property(
-                "$PREFIX.$id.$KEY",
+                "$REPOSITORY_PROPERTY_PREFIX.$id.$REPOSITORY_LOGIN_KEY",
             ) as String
         it.password =
             project.property(
-                "$PREFIX.$id.$SECRET",
+                "$REPOSITORY_PROPERTY_PREFIX.$id.$REPOSITORY_LOGIN_SECRET",
             ) as String
     }
 }

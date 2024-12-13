@@ -17,37 +17,42 @@
 @file:Suppress("unused", "UnusedReceiverParameter")
 
 import org.gradle.api.initialization.Settings
+import team.idealstate.glass.context.util.PathUtils
 import java.io.File
 
-fun Settings.includeModules(root: String = "") {
-    fun findBuildScripts(
-        modulesDirectory: File,
-        deep: Boolean = true,
-    ): List<File> {
-        val moduleIds = mutableListOf<File>()
-        for (file in modulesDirectory.listFiles()!!) {
-            val filename = file.name
-            if (filename == "buildSrc") {
+private const val BUILD_SRC_DIR_NAME = "buildSrc"
+private const val BUILD_GROOVY_SCRIPT_NAME = "build.gradle"
+private const val BUILD_KOTLIN_SCRIPT_NAME = "build.gradle.kts"
+private const val MODULE_ID_DELIMITER = ':'
+private const val MODULE_ID_DELIMITER_STR = MODULE_ID_DELIMITER.toString()
+private const val MODULE_NAME_DELIMITER = '-'
+
+private fun Settings.findBuildScripts(
+    modulesDirectory: File,
+    deep: Boolean = true,
+): List<File> {
+    val moduleIds = mutableListOf<File>()
+    for (file in modulesDirectory.listFiles()!!) {
+        val filename = file.name
+        if (filename == BUILD_SRC_DIR_NAME) {
+            continue
+        }
+        if (file.isDirectory) {
+            if (deep) {
+                moduleIds.addAll(findBuildScripts(file))
+            }
+        } else if (filename == BUILD_GROOVY_SCRIPT_NAME || filename == BUILD_KOTLIN_SCRIPT_NAME) {
+            if (file.parentFile == rootProject.projectDir) {
                 continue
             }
-            if (file.isDirectory) {
-                if (deep) {
-                    moduleIds.addAll(findBuildScripts(file))
-                }
-            } else if (filename == "build.gradle" || filename == "build.gradle.kts") {
-                if (file.parentFile == rootProject.projectDir) {
-                    continue
-                }
-                moduleIds.add(file)
-            }
+            moduleIds.add(file)
         }
-        return moduleIds
     }
+    return moduleIds
+}
 
-    val rootPath =
-        root
-            .replace("\\", "/")
-            .replace(":", "/")
+fun Settings.includeModules(root: String = "") {
+    val rootPath = PathUtils.normalize(root.replace(MODULE_ID_DELIMITER, PathUtils.NORMAL_DELIMITER))
 
     val modulesDirectory = File(rootProject.projectDir, rootPath)
     if (!modulesDirectory.exists()) {
@@ -62,11 +67,10 @@ fun Settings.includeModules(root: String = "") {
     var count = 0
     buildScripts.forEach {
         val moduleId =
-            it.parentFile.absolutePath
+            PathUtils.normalize(it.parentFile.absolutePath)
                 .substring(prefixLength)
-                .replace('\\', ':')
-                .replace('/', ':')
-        if (moduleId.isBlank() || moduleId == ":") {
+                .replace(PathUtils.NORMAL_DELIMITER, MODULE_ID_DELIMITER)
+        if (moduleId.isBlank() || moduleId == MODULE_ID_DELIMITER_STR) {
             return@forEach
         }
         println(">> including $moduleId ....")
@@ -78,7 +82,7 @@ fun Settings.includeModules(root: String = "") {
 
         project.name =
             "${rootProject.name}${moduleId.substring(rootPath.length)}"
-                .replace(':', '-')
+                .replace(MODULE_ID_DELIMITER, MODULE_NAME_DELIMITER)
         println(">> included $moduleId (${project.name})")
         count++
     }

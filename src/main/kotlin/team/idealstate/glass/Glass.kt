@@ -16,24 +16,15 @@
 
 package team.idealstate.glass
 
+import glass
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import team.idealstate.glass.context.util.Plugins
 import team.idealstate.glass.plugin.java.ConfigureJava
+import java
 
 open class Glass : Plugin<Any> {
-
-    companion object {
-        @JvmStatic
-        @Volatile
-        private var _project: Project? = null
-
-        @JvmStatic
-        val project: Project
-            get() = _project ?: throw IllegalStateException("Glass has not been applied yet.")
-    }
-
     override fun apply(target: Any) {
         when (target) {
             is Settings -> apply(target)
@@ -56,6 +47,5 @@ open class Glass : Plugin<Any> {
         if (pluginManager.hasPlugin(Plugins.glass(Plugins.java))) {
             pluginManager.apply(pluginType)
         }
-        _project = project
     }
 }

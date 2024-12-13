@@ -19,7 +19,6 @@ package team.idealstate.glass.plugin.publishing
 import groovy.util.Node
 import main
 import org.gradle.api.tasks.bundling.Jar
-import project
 import team.idealstate.glass.context.util.Extensions
 import team.idealstate.glass.context.util.Plugins
 import team.idealstate.glass.plugin.Configure
@@ -33,7 +32,6 @@ open class ConfigureMavenPublish : Configure() {
 
     override fun apply() {
         val publishing = Extensions.publishing(project)
-        publishing.repositories.project()
         publishing.publications.main {
             val tasks = project.tasks
             val pluginManager = project.pluginManager

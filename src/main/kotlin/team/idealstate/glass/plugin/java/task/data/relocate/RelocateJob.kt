@@ -55,7 +55,7 @@ class RelocateJob(
         get() = Validates.isPresent(_path, "path")
 
     fun path(path: String) {
-        Validates.notFinal(_path, "path")
+        Validates.notPresent(_path, "path")
         val tmp = PathUtils.normalize(path)
         Validates.isRelative(File(tmp), "path")
         _path = tmp

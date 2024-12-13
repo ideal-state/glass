@@ -29,6 +29,14 @@ object Validates {
     }
 
     @JvmStatic
+    fun notPresent(
+        value: Any?,
+        name: String,
+    ) {
+        if (value != null) throw IllegalStateException("$name already set. (current: $value)")
+    }
+
+    @JvmStatic
     fun isDirectory(
         file: File,
         name: String,
@@ -53,14 +61,6 @@ object Validates {
     ): File {
         if (file.isAbsolute) throw IllegalStateException("$name is not a relative path.")
         return file
-    }
-
-    @JvmStatic
-    fun notFinal(
-        value: Any?,
-        name: String,
-    ) {
-        if (value != null) throw IllegalStateException("$name already set. (current: $value)")
     }
 
     @JvmStatic

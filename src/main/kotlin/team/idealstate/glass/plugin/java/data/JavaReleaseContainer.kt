@@ -112,7 +112,7 @@ class JavaReleaseContainer(
         version: Int,
         action: Action<in JavaRelease>,
     ): MarkedProvider<Int, JavaRelease> {
-        Validates.notFinal(_main, MAIN_NAME)
+        Validates.notPresent(_main, MAIN_NAME)
         val main = add(JavaRelease(project, ReleaseType.MAIN, version), action)
         this._main = main
         return main
@@ -124,7 +124,7 @@ class JavaReleaseContainer(
         version: Int,
         action: Action<in JavaRelease>,
     ): MarkedProvider<Int, JavaRelease> {
-        Validates.notFinal(_test, TEST_NAME)
+        Validates.notPresent(_test, TEST_NAME)
         this._test =
             MarkedProvider.of(JavaRelease(project, ReleaseType.TEST, version)).apply {
                 action.execute(get())

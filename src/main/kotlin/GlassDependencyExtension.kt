@@ -16,16 +16,17 @@
 
 @file:Suppress("unused", "UnusedReceiverParameter")
 
-import org.gradle.api.Project
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainService
+import team.idealstate.glass.GlassContext
+import team.idealstate.glass.context.util.Extensions
 import java.io.File
 
-fun Project.java(vararg libs: String): ConfigurableFileCollection {
-    val java = extensions.getByName("java") as JavaPluginExtension
-    val ret = objects.fileCollection()
+fun DependencyHandler.java(vararg libs: String): ConfigurableFileCollection {
+    val project = GlassContext.project
+    val java = Extensions.java(project)
+    val ret = project.objects.fileCollection()
     val toolchain = java.toolchain
     val languageVersion = toolchain.languageVersion
     if (!languageVersion.isPresent) {
@@ -35,7 +36,7 @@ fun Project.java(vararg libs: String): ConfigurableFileCollection {
     if (javaLanguageVersion.canCompileOrRun(8)) {
         javaLanguageVersion = JavaLanguageVersion.of(8)
     }
-    val javaToolchains = extensions.getByName("javaToolchains") as JavaToolchainService
+    val javaToolchains = Extensions.javaToolchains(project)
     val javaHome =
         javaToolchains
             .compilerFor {

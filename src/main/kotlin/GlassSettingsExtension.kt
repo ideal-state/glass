@@ -67,7 +67,8 @@ fun Settings.includeModules(root: String = "") {
     var count = 0
     buildScripts.forEach {
         val moduleId =
-            PathUtils.normalize(it.parentFile.absolutePath)
+            PathUtils
+                .normalize(it.parentFile.absolutePath)
                 .substring(prefixLength)
                 .replace(PathUtils.NORMAL_DELIMITER, MODULE_ID_DELIMITER)
         if (moduleId.isBlank() || moduleId == MODULE_ID_DELIMITER_STR) {

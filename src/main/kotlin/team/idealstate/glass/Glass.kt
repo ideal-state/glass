@@ -16,13 +16,11 @@
 
 package team.idealstate.glass
 
-import glass
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import team.idealstate.glass.context.util.Plugins
 import team.idealstate.glass.plugin.java.ConfigureJava
-import java
 
 open class Glass : Plugin<Any> {
     override fun apply(target: Any) {

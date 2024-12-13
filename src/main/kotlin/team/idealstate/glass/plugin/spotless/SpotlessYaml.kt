@@ -23,7 +23,7 @@ open class SpotlessYaml : Spotless() {
         spotless.apply {
             yaml {
                 it.target("src/*/resources/**/*.yml", "src/*/resources/**/*.yaml")
-                it.jackson()
+                it.jackson().yamlFeature("WRITE_DOC_START_MARKER", false)
             }
         }
     }

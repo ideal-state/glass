@@ -248,7 +248,6 @@ open class GlassJavaExtension(
 
     private fun configureJavaMultiRelease(releaseContainer: JavaReleaseContainer) {
         val tasks = project.tasks
-        releaseContainer.artifacts(tasks.named(ConfigureJava.JAR_TASK_NAME, Jar::class.java))
         val multiReleaseClassesTask = MultiReleaseClassesTask.register(project)
         val sourceSets = Extensions.sourceSets(project)
         releaseContainer.all.forEach { release ->
@@ -305,12 +304,10 @@ open class GlassJavaExtension(
             )
         }
 
-        releaseContainer.artifacts.forEach { artifact ->
-            artifact.configure {
-                it.dependsOn(multiReleaseClassesTask)
-                it.from(multiReleaseClassesTask)
-                it.manifest.attributes(mapOf("Multi-Release" to true))
-            }
+        tasks.named(ConfigureJava.JAR_TASK_NAME, Jar::class.java) {
+            it.dependsOn(multiReleaseClassesTask)
+            it.from(multiReleaseClassesTask)
+            it.manifest.attributes(mapOf("Multi-Release" to true))
         }
     }
 

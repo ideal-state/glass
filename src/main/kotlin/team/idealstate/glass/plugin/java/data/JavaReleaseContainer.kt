@@ -18,8 +18,6 @@ package team.idealstate.glass.plugin.java.data
 
 import org.gradle.api.Action
 import org.gradle.api.Project
-import org.gradle.api.tasks.TaskProvider
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import team.idealstate.glass.context.mark.MarkedContainer
@@ -63,11 +61,6 @@ class JavaReleaseContainer(
         }
     }
 
-    private val _artifacts: LinkedHashSet<TaskProvider<out Jar>> = linkedSetOf()
-
-    val artifacts: LinkedHashSet<TaskProvider<out Jar>>
-        get() = LinkedHashSet(_artifacts)
-
     private var _main: MarkedProvider<Int, JavaRelease>? = null
     override val main
         get() = Validates.isPresent(_main, MAIN_NAME)
@@ -101,10 +94,6 @@ class JavaReleaseContainer(
         all
             .filter { version.canCompileOrRun(it.version) }
             .toSortedSet(Comparator.comparingInt { it.version })
-
-    fun artifacts(vararg artifacts: TaskProvider<out Jar>) {
-        artifacts.forEach { _artifacts.add(it) }
-    }
 
     override fun main(version: Int): MarkedProvider<Int, JavaRelease> = add(JavaRelease(project, ReleaseType.MAIN, version))
 

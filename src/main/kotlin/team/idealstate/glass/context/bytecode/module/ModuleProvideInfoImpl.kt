@@ -19,7 +19,7 @@ package team.idealstate.glass.context.bytecode.module
 import java.util.LinkedList
 
 class ModuleProvideInfoImpl(
-    override val service: String,
+    override var service: String,
 ) : ModuleProvideInfo {
     private val _withProviders: LinkedHashSet<String> = linkedSetOf()
     override val withProviders: List<String>

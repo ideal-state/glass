@@ -17,7 +17,7 @@
 package team.idealstate.glass.context.bytecode.module
 
 class ModuleUseInfoImpl(
-    override val service: String,
+    override var service: String,
 ) : ModuleUseInfo {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

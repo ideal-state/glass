@@ -38,10 +38,11 @@ import java.io.File
 import java.util.LinkedList
 
 class ModuleInfoImpl(
-    override val release: Int,
-    override val name: String,
-    override val version: String?,
-    override val open: Boolean,
+    override var release: Int,
+    override var name: String,
+    override var version: String?,
+    override var open: Boolean,
+    override var mainClass: String?,
 ) : ModuleInfo {
     companion object {
         @JvmStatic
@@ -50,7 +51,8 @@ class ModuleInfoImpl(
             name: String,
             version: String?,
             open: Boolean,
-        ): ModuleInfo = ModuleInfoImpl(release, name, version, open)
+            mainClass: String?,
+        ): ModuleInfo = ModuleInfoImpl(release, name, version, open, mainClass)
 
         @JvmStatic
         fun of(file: File): ModuleInfoImpl {
@@ -68,8 +70,14 @@ class ModuleInfoImpl(
             vararg moduleInfos: ModuleInfo,
         ): ModuleInfoImpl {
             val queue = listOf(mainModuleInfo, *moduleInfos)
-            val main = ModuleInfoImpl(mainModuleInfo.release, mainModuleInfo.name, mainModuleInfo.version, mainModuleInfo.open)
-            main.mainClass = mainModuleInfo.mainClass
+            val main =
+                ModuleInfoImpl(
+                    mainModuleInfo.release,
+                    mainModuleInfo.name,
+                    mainModuleInfo.version,
+                    mainModuleInfo.open,
+                    mainModuleInfo.mainClass,
+                )
             val moduleNames = queue.map(ModuleInfo::name).toSet()
             for (moduleInfo in queue) {
                 for (annotation in moduleInfo.annotations) {
@@ -129,8 +137,6 @@ class ModuleInfoImpl(
     fun annotation(annotationInfo: AnnotationInfo) {
         _annotations.add(annotationInfo)
     }
-
-    override var mainClass: String? = null
 
     private val _requires: MutableSet<ModuleRequireInfo> =
         linkedSetOf(
@@ -483,7 +489,7 @@ class ModuleInfoImpl(
         ): ModuleVisitor {
             val moduleVisitor = super.visitModule(name, access, version)
             val isOpen = access and Opcodes.ACC_OPEN != 0
-            val moduleInfo = ModuleInfoImpl(this.release!!, name, version, isOpen)
+            val moduleInfo = ModuleInfoImpl(this.release!!, name, version, isOpen, null)
             this._moduleInfo = moduleInfo
             return ModuleInfoVisitor(api, moduleVisitor, moduleInfo)
         }

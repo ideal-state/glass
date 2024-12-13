@@ -17,10 +17,10 @@
 package team.idealstate.glass.context.bytecode.module
 
 class ModuleRequireInfoImpl(
-    override val transitive: Boolean,
-    override val static: Boolean,
-    override val module: String,
-    override val version: String?,
+    override var transitive: Boolean,
+    override var static: Boolean,
+    override var module: String,
+    override var version: String?,
 ) : ModuleRequireInfo {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

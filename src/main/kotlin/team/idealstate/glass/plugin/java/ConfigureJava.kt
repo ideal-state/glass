@@ -79,6 +79,17 @@ open class ConfigureJava : Configure() {
     private fun configureJarTask() {
         project.tasks.named("jar", Jar::class.java) {
             configureJarTask(it)
+            it.doFirst { _ ->
+                val glass = GlassJavaExtension.of(project)
+                glass.application.orNull?.also { application ->
+                    application.main.orNull?.also { main ->
+                        it.manifest.attributes(mapOf("Main-Class" to main))
+                    }
+                    application.agent.orNull?.also { agent ->
+                        it.manifest.attributes(agent.toManifestAttributes())
+                    }
+                }
+            }
         }
     }
 

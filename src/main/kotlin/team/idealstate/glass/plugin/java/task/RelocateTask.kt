@@ -268,8 +268,13 @@ open class RelocateTask : ParallelTask<RelocateJobKey, File, RelocateJobResult, 
         val module = this.module.get()
         val destinationDirectory = this.destinationDirectory.get().asFile
         val internalPackageName = ClassUtils.internalize(module, JavaInternalRelocator.INTERNAL_PACKAGE_NAME)
+        val glass = GlassJavaExtension.of(project)
+        val mainClass: String? =
+            glass.application.orNull?.let { application ->
+                return@let application.main.orNull?.let(ClassUtils::internalize)
+            }
         for ((release, moduleInfos) in releaseModuleInfos) {
-            val mainModuleInfo = ModuleInfo.of(release, module, null, false)
+            val mainModuleInfo = ModuleInfo.of(release, module, project.version.toString(), false, mainClass)
             val mergedModuleInfo = ModuleInfo.merge(mainModuleInfo, *moduleInfos.toTypedArray())
             mergedModuleInfo as ModuleInfoImpl
             for (export in mergedModuleInfo.exports) {

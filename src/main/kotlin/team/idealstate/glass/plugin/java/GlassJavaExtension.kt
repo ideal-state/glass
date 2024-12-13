@@ -33,7 +33,7 @@ import org.gradle.language.jvm.tasks.ProcessResources
 import team.idealstate.glass.context.release.MultiRelease
 import team.idealstate.glass.context.util.Extensions
 import team.idealstate.glass.data.dependency.ScopedDependencyInformation
-import team.idealstate.glass.plugin.java.data.JavaAgentManifest
+import team.idealstate.glass.plugin.java.data.JavaApplication
 import team.idealstate.glass.plugin.java.data.JavaRelease
 import team.idealstate.glass.plugin.java.data.JavaReleaseContainer
 import team.idealstate.glass.plugin.java.task.CopyrightTask
@@ -57,7 +57,7 @@ open class GlassJavaExtension(
         const val FEATURE_WITH_SOURCES_JAR = "withSourcesJar"
         const val FEATURE_WITH_JAVADOC_JAR = "withJavadocJar"
         const val FEATURE_WITH_JUNIT_TEST = "withJUnitTest"
-        const val FEATURE_AGENT = "agent"
+        const val FEATURE_APPLICATION = "application"
         const val FEATURE_MULTI_RELEASE = "multiRelease"
 
         @JvmStatic
@@ -88,10 +88,6 @@ open class GlassJavaExtension(
         }
     }
 
-    val module: Property<String> =
-        project.objects.property(String::class.java).apply {
-            set(project.provider { project.group.toString() })
-        }
     private val enabledFeatures = mutableMapOf<String, Boolean>()
 
     private fun enable(feature: String): Boolean {
@@ -110,6 +106,28 @@ open class GlassJavaExtension(
             if (enabledFeatures[other] == true) {
                 throw IllegalStateException("Feature $feature must be enabled before $other.")
             }
+        }
+    }
+
+    val module: Property<String> =
+        project.objects.property(String::class.java).apply {
+            set(project.provider { project.group.toString() })
+        }
+
+    val application: Property<JavaApplication> = project.objects.property(JavaApplication::class.java)
+
+    fun application(action: Action<in JavaApplication>) {
+        if (enable(FEATURE_APPLICATION)) return
+        var exists = false
+        var application = this.application.orNull
+        if (application != null) {
+            exists = true
+        } else {
+            application = JavaApplication(project)
+        }
+        action.execute(application)
+        if (!exists) {
+            this.application.set(application)
         }
     }
 
@@ -218,17 +236,6 @@ open class GlassJavaExtension(
         }
         project.tasks.named("test", Test::class.java) {
             it.useJUnitPlatform(action)
-        }
-    }
-
-    fun agent(action: Action<JavaAgentManifest>) {
-        if (enable(FEATURE_AGENT)) return
-        project.tasks.named(ConfigureJava.JAR_TASK_NAME, Jar::class.java) {
-            it.doFirst { _ ->
-                val agentManifest = JavaAgentManifest(project)
-                action.execute(agentManifest)
-                it.manifest.attributes(agentManifest.toManifestAttributes())
-            }
         }
     }
 

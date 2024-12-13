@@ -31,7 +31,8 @@ interface ModuleInfo {
             name: String,
             version: String?,
             open: Boolean,
-        ): ModuleInfo = ModuleInfoImpl.of(release, name, version, open)
+            mainClass: String?,
+        ): ModuleInfo = ModuleInfoImpl.of(release, name, version, open, mainClass)
 
         @JvmStatic
         fun of(file: File): ModuleInfo = ModuleInfoImpl.of(file)

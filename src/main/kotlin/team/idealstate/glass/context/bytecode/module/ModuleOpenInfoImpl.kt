@@ -19,7 +19,7 @@ package team.idealstate.glass.context.bytecode.module
 import java.util.LinkedList
 
 class ModuleOpenInfoImpl(
-    override val packageName: String,
+    override var packageName: String,
 ) : ModuleOpenInfo {
     private val _toModules: LinkedHashSet<String> = linkedSetOf()
     override val toModules: List<String>

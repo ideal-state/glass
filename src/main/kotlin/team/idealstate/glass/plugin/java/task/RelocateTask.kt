@@ -155,6 +155,13 @@ open class RelocateTask : ParallelTask<RelocateJobKey, File, RelocateJobResult, 
             set(project.layout.buildDirectory.dir(ROOT_NAME))
         }
 
+    @Suppress("unused")
+    @Input
+    protected val alwaysRun: Property<Long> =
+        project.objects.property(Long::class.java).apply {
+            set(project.provider { System.currentTimeMillis() })
+        }
+
     init {
         super.shouldRunAfter(UnzipInternalDependenciesTask.NAME)
         exclude(ExcludeManifest)

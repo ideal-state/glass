@@ -18,6 +18,8 @@ package team.idealstate.glass.plugin.java.task
 
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.work.DisableCachingByDefault
 import team.idealstate.glass.context.util.PathUtils
@@ -51,6 +53,13 @@ open class UnzipInternalDependenciesTask : ParallelCopy() {
             action: Action<in UnzipInternalDependenciesTask>,
         ): TaskProvider<UnzipInternalDependenciesTask> = project.tasks.named(NAME, UnzipInternalDependenciesTask::class.java, action)
     }
+
+    @Suppress("unused")
+    @Input
+    protected val alwaysRun: Property<Long> =
+        project.objects.property(Long::class.java).apply {
+            set(project.provider { System.currentTimeMillis() })
+        }
 
     init {
         destinationDir.set(

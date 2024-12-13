@@ -18,8 +18,10 @@ package team.idealstate.glass.plugin.java.task
 
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskProvider
 import team.idealstate.glass.plugin.java.data.JavaRelease
 
@@ -47,6 +49,13 @@ open class MultiReleaseClassesTask : Copy() {
             action: Action<in MultiReleaseClassesTask>,
         ): TaskProvider<MultiReleaseClassesTask> = project.tasks.named(NAME, MultiReleaseClassesTask::class.java, action)
     }
+
+    @Suppress("unused")
+    @Input
+    protected val alwaysRun: Property<Long> =
+        project.objects.property(Long::class.java).apply {
+            set(project.provider { System.currentTimeMillis() })
+        }
 
     init {
         super.into(

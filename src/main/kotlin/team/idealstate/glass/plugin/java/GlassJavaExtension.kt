@@ -27,6 +27,8 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.api.tasks.testing.Test
+import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import org.gradle.language.jvm.tasks.ProcessResources
 import team.idealstate.glass.context.release.MultiRelease
 import team.idealstate.glass.context.util.Extensions
@@ -48,11 +50,14 @@ open class GlassJavaExtension(
 ) {
     companion object {
         const val NAME = "glass"
+        const val JUNIT_TEST_DEFAULT_VERSION = "5.11.3"
         const val FEATURE_WITH_COPYRIGHT = "withCopyright"
         const val FEATURE_WITH_DEPENDENCIES_INFORMATION = "withDependenciesInformation"
         const val FEATURE_WITH_INTERNAL = "withInternal"
         const val FEATURE_WITH_SOURCES_JAR = "withSourcesJar"
         const val FEATURE_WITH_JAVADOC_JAR = "withJavadocJar"
+        const val FEATURE_WITH_JUNIT_TEST = "withJUnitTest"
+        const val FEATURE_AGENT = "agent"
         const val FEATURE_MULTI_RELEASE = "multiRelease"
 
         @JvmStatic
@@ -198,7 +203,26 @@ open class GlassJavaExtension(
         }
     }
 
+    fun withJUnitTest(
+        version: String = JUNIT_TEST_DEFAULT_VERSION,
+        action: Action<in JUnitPlatformOptions> = Action {},
+    ) {
+        if (enable(FEATURE_WITH_JUNIT_TEST)) return
+        val sourceSets = Extensions.sourceSets(project)
+        val testSourceSet = sourceSets.named(SourceSet.TEST_SOURCE_SET_NAME).get()
+        val testImplementation = testSourceSet.implementationConfigurationName
+        val testRuntimeOnly = testSourceSet.runtimeOnlyConfigurationName
+        project.dependencies.apply {
+            add(testImplementation, "org.junit.jupiter:junit-jupiter:$version")
+            add(testRuntimeOnly, "org.junit.platform:junit-platform-launcher")
+        }
+        project.tasks.named("test", Test::class.java) {
+            it.useJUnitPlatform(action)
+        }
+    }
+
     fun agent(action: Action<JavaAgentManifest>) {
+        if (enable(FEATURE_AGENT)) return
         project.tasks.named(ConfigureJava.JAR_TASK_NAME, Jar::class.java) {
             it.doFirst { _ ->
                 val agentManifest = JavaAgentManifest(project)

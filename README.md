@@ -1,6 +1,4 @@
-# Glass
-
-<img src="logo.svg" width="128px" height="128px" alt="logo"/>
+# <img align="left" src="logo.svg" height="192px" alt="logo"/> Glass
 
 ![OpenJDK](https://img.shields.io/badge/OpenJDK-1.8%2b-blue?logo=openjdk&style=flat-square)
 ![Gradle](https://img.shields.io/badge/Gradle-8%2E11-g?logo=gradle&style=flat-square)

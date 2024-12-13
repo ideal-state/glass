@@ -31,6 +31,7 @@ import org.gradle.language.jvm.tasks.ProcessResources
 import team.idealstate.glass.context.release.MultiRelease
 import team.idealstate.glass.context.util.Extensions
 import team.idealstate.glass.data.dependency.ScopedDependencyInformation
+import team.idealstate.glass.plugin.java.data.JavaAgentManifest
 import team.idealstate.glass.plugin.java.data.JavaRelease
 import team.idealstate.glass.plugin.java.data.JavaReleaseContainer
 import team.idealstate.glass.plugin.java.task.CopyrightTask
@@ -193,6 +194,16 @@ open class GlassJavaExtension(
                         details.path = relocateResult.path
                     }
                 }
+            }
+        }
+    }
+
+    fun agent(action: Action<JavaAgentManifest>) {
+        project.tasks.named(ConfigureJava.JAR_TASK_NAME, Jar::class.java) {
+            it.doFirst { _ ->
+                val agentManifest = JavaAgentManifest(project)
+                action.execute(agentManifest)
+                it.manifest.attributes(agentManifest.toManifestAttributes())
             }
         }
     }

@@ -25,7 +25,6 @@ import org.gradle.api.file.FileTreeElement
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.specs.Spec
-import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
@@ -114,11 +113,13 @@ open class CollectMultiReleaseClassesTask : DefaultTask() {
     }
 
     private var _release: JavaRelease? = null
+
     @get:Internal
     val release: JavaRelease
         get() = Validates.isPresent(_release, "release")
 
     private var _classesBaseDir: File? = null
+
     @get:Internal
     val classesBaseDir: File
         get() = Validates.isPresent(_classesBaseDir, "classesBaseDir")

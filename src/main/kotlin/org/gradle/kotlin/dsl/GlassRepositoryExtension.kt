@@ -52,16 +52,20 @@ fun RepositoryHandler.aliyun(): MavenArtifactRepository =
         it.url = URI.create("https://maven.aliyun.com/repository/public/")
     }
 
-fun RepositoryHandler.sonatype(type: String = "", action: Action<in MavenArtifactRepository> = Action { }): MavenArtifactRepository {
-    val maven = maven {
-        if (SNAPSHOT.equals(type, true)) {
-            it.name = "Sonatype-Snapshots"
-            it.url = URI.create("https://central.sonatype.com/repository/maven-snapshots/")
-        } else {
-            it.name = "Sonatype"
-            it.url = URI.create("https://repo1.maven.org/maven2/")
+fun RepositoryHandler.sonatype(
+    type: String = "",
+    action: Action<in MavenArtifactRepository> = Action { },
+): MavenArtifactRepository {
+    val maven =
+        maven {
+            if (SNAPSHOT.equals(type, true)) {
+                it.name = "Sonatype-Snapshots"
+                it.url = URI.create("https://central.sonatype.com/repository/maven-snapshots/")
+            } else {
+                it.name = "Sonatype"
+                it.url = URI.create("https://repo1.maven.org/maven2/")
+            }
         }
-    }
     action.execute(maven)
     return maven
 }

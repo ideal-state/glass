@@ -66,11 +66,26 @@ interface JavaFile {
                     internalName = classReader.className
                 }
                 if (internalPath == internalName) {
-                    return JavaClassFile(baseDir, file, release, packageName, fileName, ClassUtils.CLASS_FILE_EXTENSION_NAME, ClassUtils.normalize(internalName))
+                    return JavaClassFile(
+                        baseDir,
+                        file,
+                        release,
+                        packageName,
+                        fileName,
+                        ClassUtils.CLASS_FILE_EXTENSION_NAME,
+                        ClassUtils.normalize(internalName),
+                    )
                 }
             }
             if (ClassUtils.maybeSourceFile(fullFileName)) {
-                return JavaSourceFile(baseDir, file, release, packageName, fullFileName.substringBeforeLast(ClassUtils.SOURCE_FILE_EXTENSION_NAME), ClassUtils.SOURCE_FILE_EXTENSION_NAME)
+                return JavaSourceFile(
+                    baseDir,
+                    file,
+                    release,
+                    packageName,
+                    fullFileName.substringBeforeLast(ClassUtils.SOURCE_FILE_EXTENSION_NAME),
+                    ClassUtils.SOURCE_FILE_EXTENSION_NAME,
+                )
             }
             val fileName = fullFileName.substringBefore('.')
             val extension = '.' + fullFileName.substringAfter('.')

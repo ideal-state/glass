@@ -24,5 +24,5 @@ data class JavaResourceFile(
     override val release: Int?,
     override val packageName: String,
     override val name: String,
-    override val extension: String
+    override val extension: String,
 ) : JavaFile

@@ -21,11 +21,11 @@ import com.diffplug.gradle.spotless.SpotlessExtension
 open class SpotlessGradle : Spotless() {
     override fun apply(spotless: SpotlessExtension) {
         spotless.apply {
-            groovyGradle {
-                it.target("**/*.gradle")
-                it.endWithNewline()
-                it.greclipse()
-            }
+//            groovyGradle {
+//                it.target("**/*.gradle")
+//                it.endWithNewline()
+//                it.greclipse()
+//            }
 
             kotlinGradle {
                 it.target("**/*.gradle.kts")

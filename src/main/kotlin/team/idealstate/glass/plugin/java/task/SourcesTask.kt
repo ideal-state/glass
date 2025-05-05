@@ -19,7 +19,6 @@ package team.idealstate.glass.plugin.java.task
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
-import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.work.DisableCachingByDefault

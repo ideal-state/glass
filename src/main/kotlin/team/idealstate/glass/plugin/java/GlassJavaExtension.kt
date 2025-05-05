@@ -23,7 +23,6 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import org.gradle.kotlin.dsl.dependenciesInformation
@@ -38,8 +37,6 @@ import team.idealstate.glass.plugin.java.task.MavenPomTask.Companion.ROOT_NAME
 import team.idealstate.glass.plugin.java.task.RelocateTask
 import team.idealstate.glass.plugin.java.task.SourcesTask
 import team.idealstate.glass.plugin.java.task.UnzipInternalDependenciesTask
-import team.idealstate.glass.plugin.publishing.ConfigurePublishing
-import java.util.Locale.getDefault
 import kotlin.text.get
 
 open class GlassJavaExtension(
@@ -202,13 +199,13 @@ open class GlassJavaExtension(
 //        val internal = configurations.named(ConfigureJava.CONFIGURATION_INTERNAL_NAME).get()
 //        for (sourceSet in arrayOf(mainSourceSet, testSourceSet)) {
 //            if (shadow) {
-////                val implementation = configurations.named(sourceSet.implementationConfigurationName).get()
-////                implementation.extendsFrom += internal
+// //                val implementation = configurations.named(sourceSet.implementationConfigurationName).get()
+// //                implementation.extendsFrom += internal
 //                sourceSet.compileClasspath += internal
 //                sourceSet.runtimeClasspath += internal
 //            } else {
-////                val compileOnly = configurations.named(sourceSet.compileOnlyConfigurationName).get()
-////                compileOnly.extendsFrom += internal
+// //                val compileOnly = configurations.named(sourceSet.compileOnlyConfigurationName).get()
+// //                compileOnly.extendsFrom += internal
 //                sourceSet.compileClasspath += internal
 //            }
 //        }

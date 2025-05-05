@@ -35,12 +35,10 @@ open class MavenPomTask : DefaultTask() {
         const val ROOT_NAME = "mavenPom"
 
         @JvmStatic
-        fun register(project: Project): TaskProvider<MavenPomTask> =
-            project.tasks.register(NAME, MavenPomTask::class.java)
+        fun register(project: Project): TaskProvider<MavenPomTask> = project.tasks.register(NAME, MavenPomTask::class.java)
 
         @JvmStatic
-        fun of(project: Project): TaskProvider<MavenPomTask> =
-            project.tasks.named(NAME, MavenPomTask::class.java)
+        fun of(project: Project): TaskProvider<MavenPomTask> = project.tasks.named(NAME, MavenPomTask::class.java)
 
         @JvmStatic
         fun register(
@@ -62,7 +60,15 @@ open class MavenPomTask : DefaultTask() {
         }
 
     private val pomTaskName by lazy {
-        "generatePomFileFor${ConfigurePublishing.MAIN_NAME.replaceFirstChar { if (it.isLowerCase()) it.titlecase(getDefault()) else it.toString() }}Publication"
+        "generatePomFileFor${ConfigurePublishing.MAIN_NAME.replaceFirstChar {
+            if (it.isLowerCase()) {
+                it.titlecase(
+                    getDefault(),
+                )
+            } else {
+                it.toString()
+            }
+        }}Publication"
     }
 
     init {

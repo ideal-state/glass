@@ -96,8 +96,7 @@ open class RelocateTask : ParallelTask<RelocateJobKey, File, RelocateJobResult, 
     }
 
     object SkipDependenciesInformation : Skip<RelocateJobDetail> {
-        override fun skip(it: RelocateJobDetail): Boolean =
-            it.path == PathUtils.normalize("META-INF/${MavenPomTask.ROOT_NAME}/")
+        override fun skip(it: RelocateJobDetail): Boolean = it.path == PathUtils.normalize("META-INF/${MavenPomTask.ROOT_NAME}/")
     }
 
     companion object {
@@ -246,7 +245,10 @@ open class RelocateTask : ParallelTask<RelocateJobKey, File, RelocateJobResult, 
             val mainSourceSet = Extensions.sourceSets(project).named(SourceSet.MAIN_SOURCE_SET_NAME).get()
             val compileJavaTask = project.tasks.named(mainSourceSet.compileJavaTaskName, JavaCompile::class.java).get()
             val java = Extensions.java(project)
-            val version = java.toolchain.languageVersion.get().asInt()
+            val version =
+                java.toolchain.languageVersion
+                    .get()
+                    .asInt()
             val mainRelease = compileJavaTask.options.release.orNull ?: version
             mergeModuleInfos(moduleInfoResults, mainRelease)
         }

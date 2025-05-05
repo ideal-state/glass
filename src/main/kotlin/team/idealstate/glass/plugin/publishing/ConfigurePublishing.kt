@@ -17,16 +17,12 @@
 package team.idealstate.glass.plugin.publishing
 
 import groovy.util.Node
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.main
 import team.idealstate.glass.context.util.Extensions
 import team.idealstate.glass.context.util.Plugins
 import team.idealstate.glass.plugin.Configure
-import team.idealstate.glass.plugin.java.ConfigureJava
-import team.idealstate.glass.plugin.java.GlassJavaExtension
 
 open class ConfigurePublishing : Configure() {
-
     companion object {
         const val MAIN_NAME = "master"
     }

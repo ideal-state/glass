@@ -20,13 +20,9 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
-import org.gradle.external.javadoc.CoreJavadocOptions
-import org.gradle.external.javadoc.JavadocOutputLevel
 import org.gradle.external.javadoc.StandardJavadocDocletOptions
-import org.gradle.internal.declarativedsl.intrinsics.listOf
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmVendorSpec
-import org.gradle.process.ExecSpec
 import team.idealstate.glass.context.util.Extensions
 import team.idealstate.glass.context.util.Plugins
 import team.idealstate.glass.plugin.Configure
@@ -34,7 +30,6 @@ import team.idealstate.glass.plugin.java.task.SourcesTask
 import java.nio.charset.Charset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Objects
 
 open class ConfigureJava : Configure() {
     companion object {
@@ -133,10 +128,12 @@ open class ConfigureJava : Configure() {
         val doclet = project.configurations.register(CONFIGURATION_DOCLET_NAME)
         project.tasks.named("javadoc", Javadoc::class.java) {
             val javaToolchains = Extensions.javaToolchains(project)
-            it.javadocTool.set(javaToolchains.javadocToolFor { tool ->
-                tool.languageVersion.set(JavaLanguageVersion.of(17))
-                tool.vendor.set(JvmVendorSpec.AZUL)
-            })
+            it.javadocTool.set(
+                javaToolchains.javadocToolFor { tool ->
+                    tool.languageVersion.set(JavaLanguageVersion.of(17))
+                    tool.vendor.set(JvmVendorSpec.AZUL)
+                },
+            )
             it.isFailOnError = false
             it.options { options ->
                 val docletFiles =

@@ -18,15 +18,17 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import team.idealstate.glass.GlassContext
 import team.idealstate.glass.context.util.Extensions
 import java.io.File
 
-fun DependencyHandler.java(vararg libs: String): ConfigurableFileCollection {
-    val project = GlassContext.project
+fun DependencyHandler.java(
+    project: Project,
+    vararg libs: String,
+): ConfigurableFileCollection {
     val java = Extensions.java(project)
     val ret = project.objects.fileCollection()
     val toolchain = java.toolchain

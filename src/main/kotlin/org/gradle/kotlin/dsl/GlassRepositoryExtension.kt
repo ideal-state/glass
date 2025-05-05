@@ -19,9 +19,9 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
+import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
-import team.idealstate.glass.GlassContext
 import team.idealstate.glass.data.CredentialsProvider
 import team.idealstate.glass.data.repository.EnvironmentsMavenArtifactRepositoryCredentialsProvider
 import team.idealstate.glass.data.repository.PropertiesMavenArtifactRepositoryCredentialsProvider
@@ -30,18 +30,14 @@ import java.net.URI
 fun MavenArtifactRepository.environments(): CredentialsProvider<out MavenArtifactRepository> =
     EnvironmentsMavenArtifactRepositoryCredentialsProvider(this)
 
-fun MavenArtifactRepository.properties(): CredentialsProvider<out MavenArtifactRepository> {
-    val project = GlassContext.project
-    return PropertiesMavenArtifactRepositoryCredentialsProvider(project, this)
-}
+fun MavenArtifactRepository.properties(project: Project): CredentialsProvider<out MavenArtifactRepository> =
+    PropertiesMavenArtifactRepositoryCredentialsProvider(project, this)
 
-fun RepositoryHandler.project(): MavenArtifactRepository {
-    val project = GlassContext.project
-    return maven {
+fun RepositoryHandler.project(project: Project): MavenArtifactRepository =
+    maven {
         it.name = "Project"
         it.url = project.uri("file://${project.projectDir}/build/repository")
     }
-}
 
 val RepositoryHandler.SNAPSHOT: String
     get() = "SNAPSHOT"

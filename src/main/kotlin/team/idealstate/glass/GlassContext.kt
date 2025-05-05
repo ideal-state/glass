@@ -22,44 +22,44 @@ import org.gradle.api.provider.Property
 data class GlassContext(
     val project: Project,
 ) {
-    internal companion object {
-        @JvmStatic
-        private fun <V : Any> isInjected(
-            value: V?,
-            name: String,
-        ): V =
-            value
-                ?: throw IllegalStateException(
-                    "GlassContext value '$name' is not injected. (Please call Project#GlassContext(...) before using it.)",
-                )
-
-        private const val CONTEXT = "context"
-
-        @Volatile
-        private var contextSingleton: GlassContext? = null
-            set(value) =
-                synchronized(this) {
-                    field = value
-                }
-
-        private val context: GlassContext
-            get() = isInjected(contextSingleton, CONTEXT)
-
-        private const val PROJECT = "project"
-
-        val project: Project
-            get() = context.project
-
-        private const val GROUP = "group"
-
-        val group: String
-            get() = context.group.get()
-
-        private const val VERSION = "version"
-
-        val version: String
-            get() = context.version.get()
-    }
+//    internal companion object {
+//        @JvmStatic
+//        private fun <V : Any> isInjected(
+//            value: V?,
+//            name: String,
+//        ): V =
+//            value
+//                ?: throw IllegalStateException(
+//                    "GlassContext value '$name' is not injected. (Please call Project#GlassContext(...) before using it.)",
+//                )
+//
+//        private const val CONTEXT = "context"
+//
+//        @Volatile
+//        private var contextSingleton: GlassContext? = null
+//            set(value) =
+//                synchronized(this) {
+//                    field = value
+//                }
+//
+//        private val context: GlassContext
+//            get() = isInjected(contextSingleton, CONTEXT)
+//
+//        private const val PROJECT = "project"
+//
+//        val project: Project
+//            get() = context.project
+//
+//        private const val GROUP = "group"
+//
+//        val group: String
+//            get() = context.group.get()
+//
+//        private const val VERSION = "version"
+//
+//        val version: String
+//            get() = context.version.get()
+//    }
 
     val group: Property<String> =
         project.objects.property(String::class.java).apply {
@@ -71,9 +71,9 @@ data class GlassContext(
             set(project.provider { project.version.toString() })
         }
 
-    init {
-        contextSingleton = this
-    }
+//    init {
+//        contextSingleton = this
+//    }
 
     fun apply() {
         project.group = group.get()

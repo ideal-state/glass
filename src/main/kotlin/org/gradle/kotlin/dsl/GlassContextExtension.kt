@@ -21,9 +21,20 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.Action
 import org.gradle.api.Project
 import team.idealstate.glass.GlassContext
+import java.io.File
+
+private val contexts = mutableMapOf<File, GlassContext>()
 
 fun Project.context(action: Action<in GlassContext>) {
-    val context = GlassContext(this)
+    val context =
+        contexts.computeIfAbsent(projectDir) {
+            GlassContext(this)
+        }
     action.execute(context)
     context.apply()
 }
+
+val Project.context: GlassContext
+    get() {
+        return contexts[project.projectDir] ?: throw IllegalStateException("No context found for project ${project.name}")
+    }

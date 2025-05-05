@@ -58,15 +58,10 @@ private val excludes =
         ":build:spotless-clean:spotlessGroovyGradle",
         ":build:spotless-clean:spotlessKotlinGradle",
     )
-private val loaded = mutableSetOf<String>()
 
 fun Settings.multiModule(root: String = "") {
     val rootPath = PathUtils.normalize(root.replace(MODULE_ID_DELIMITER, PathUtils.NORMAL_DELIMITER))
 
-    if (loaded.contains(rootPath)) {
-        return
-    }
-    loaded.add(rootPath)
     val modulesDirectory = File(rootProject.projectDir, rootPath)
     if (!modulesDirectory.exists()) {
         throw IllegalStateException("Modules directory is not exists.")

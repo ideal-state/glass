@@ -76,9 +76,11 @@ open class ConfigureJava : Configure() {
 //        val mainSourceSet = sourceSets.named(SourceSet.MAIN_SOURCE_SET_NAME).get()
 //        val implementation = configurations.named(mainSourceSet.implementationConfigurationName).get()
 //        implementation.extendsFrom(internal)
-        project.tasks.named("compileJava", JavaCompile::class.java) {
+//        project.tasks.named("compileJava", JavaCompile::class.java) {}
+        project.tasks.withType(JavaCompile::class.java) {
             it.doFirst { _ ->
                 it.options.encoding = Charset.defaultCharset().name()
+                it.options.compilerArgs + "-parameters"
             }
         }
     }
@@ -124,7 +126,7 @@ open class ConfigureJava : Configure() {
     }
 
     private fun configureJavadocTask() {
-        val encoding = Charsets.UTF_8.name()
+        val encoding = Charset.defaultCharset().name()
         val doclet = project.configurations.register(CONFIGURATION_DOCLET_NAME)
         project.tasks.named("javadoc", Javadoc::class.java) {
             val javaToolchains = Extensions.javaToolchains(project)

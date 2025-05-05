@@ -16,6 +16,7 @@
 
 package team.idealstate.glass.plugin.java
 
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
@@ -51,6 +52,7 @@ open class ConfigureJava : Configure() {
                         "timestamp" to ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME),
                     ),
                 )
+                it.duplicatesStrategy = DuplicatesStrategy.WARN
             }
         }
     }

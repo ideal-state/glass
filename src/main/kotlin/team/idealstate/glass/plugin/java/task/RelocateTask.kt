@@ -163,6 +163,7 @@ open class RelocateTask : ParallelTask<RelocateJobKey, File, RelocateJobResult, 
         }
 
     init {
+        group = "glass"
         super.shouldRunAfter(UnzipInternalDependenciesTask.NAME)
         exclude(ExcludeManifest)
         skip(SkipCopyright)

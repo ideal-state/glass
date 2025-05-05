@@ -51,7 +51,7 @@ open class CopyrightTask : Copy() {
     }
 
     init {
-        group = "documentation"
+        group = "glass"
 
         super.into(project.layout.buildDirectory.dir("docs/$ROOT_NAME"))
 

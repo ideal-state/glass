@@ -52,7 +52,7 @@ abstract class ParallelTask<K : Any, T : Any, R, J : Job<K, T, R>, C : JobContai
     protected val jobResults = ConcurrentLinkedDeque<R>()
 
     init {
-        group = "parallel"
+        group = "glass"
     }
 
     @Input

@@ -66,7 +66,7 @@ open class MavenPomTask : DefaultTask() {
     }
 
     init {
-        group = "documentation"
+        group = "glass"
         dependsOn(pomTaskName)
     }
 

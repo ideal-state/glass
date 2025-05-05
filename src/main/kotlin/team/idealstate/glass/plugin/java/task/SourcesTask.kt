@@ -59,6 +59,7 @@ open class SourcesTask : Copy() {
     }
 
     init {
+        group = "glass"
         super.into(project.layout.buildDirectory.dir("sources"))
     }
 

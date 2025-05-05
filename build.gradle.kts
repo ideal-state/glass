@@ -147,12 +147,6 @@ spotless {
 
     encoding(Charsets.UTF_8)
 
-    groovyGradle {
-        target("*.gradle")
-        endWithNewline()
-        greclipse()
-    }
-
     kotlinGradle {
         target("*.gradle.kts")
         endWithNewline()
@@ -177,7 +171,6 @@ publishing {
 }
 
 jreleaser {
-    dependsOnAssemble.set(false)
     deploy {
         maven {
             mavenCentral {
@@ -205,7 +198,15 @@ jreleaser {
     }
 }
 
+val doDeploy by tasks.registering {
+    dependsOn(tasks.test)
+    dependsOn(tasks.named("publishAllPublicationsToProjectRepository"))
+    finalizedBy(tasks.jreleaserDeploy)
+}
+
 val deploy by tasks.registering {
     group = "glass"
-    dependsOn(tasks.clean, tasks.spotlessApply, tasks.test, tasks.named("publishAllPublicationsToProjectRepository"), tasks.jreleaserDeploy)
+    dependsOn(tasks.clean)
+    dependsOn(tasks.spotlessApply)
+    finalizedBy(doDeploy)
 }

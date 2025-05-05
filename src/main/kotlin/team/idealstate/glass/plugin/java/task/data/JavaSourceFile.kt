@@ -14,15 +14,15 @@
  *    limitations under the License.
  */
 
-@file:Suppress("unused", "UnusedReceiverParameter")
+package team.idealstate.glass.plugin.java.task.data
 
-import org.gradle.api.Action
-import org.gradle.api.Project
-import team.idealstate.glass.GlassContext
+import java.io.File
 
-@Suppress("FunctionName")
-fun Project.GlassContext(action: Action<in GlassContext>) {
-    val context = GlassContext(this)
-    action.execute(context)
-    context.apply()
-}
+data class JavaSourceFile(
+    override val baseDir: File,
+    override val file: File,
+    override val release: Int?,
+    override val packageName: String,
+    override val name: String,
+    override val extension: String
+) : JavaFile

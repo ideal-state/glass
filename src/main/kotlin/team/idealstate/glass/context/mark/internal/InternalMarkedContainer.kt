@@ -96,6 +96,17 @@ internal class InternalMarkedContainer<T : Any, M : Marked<T>>(
         return markedProvider
     }
 
+    override fun add(markedProvider: MarkedProvider<out T, out M>): MarkedProvider<T, M> = add(markedProvider) {}
+
+    override fun add(
+        markedProvider: MarkedProvider<out T, out M>,
+        action: Action<in M>,
+    ): MarkedProvider<T, M> {
+        val mark = markedProvider.mark
+        validateDuplicate(mark)
+        return add(markedProvider.get(), action)
+    }
+
     override fun replace(marked: M): MarkedProvider<T, M>? = replace(marked) {}
 
     override fun replace(
@@ -110,8 +121,7 @@ internal class InternalMarkedContainer<T : Any, M : Marked<T>>(
         }
 
         remove(mark)
-        action.execute(marked)
-        providers[mark] = MarkedProvider.of(marked)
+        add(marked)
 
         observers.forEach {
             it.onReplaced(marked, removingMarkedProvider)
@@ -137,7 +147,7 @@ internal class InternalMarkedContainer<T : Any, M : Marked<T>>(
         }
 
         remove(mark)
-        providers[mark] = markedProvider
+        add(markedProvider)
 
         observers.forEach {
             it.onReplaced(markedProvider, removingMarkedProvider)

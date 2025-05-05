@@ -27,6 +27,7 @@ object Plugins {
     const val java: String = "java"
 
     const val maven_publish: String = "maven-publish"
+    const val publishing: String = "publishing"
 
     const val signing: String = "signing"
 

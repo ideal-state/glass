@@ -16,34 +16,31 @@
 
 package team.idealstate.glass.plugin.java
 
-import dependenciesInformation
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
-import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
+import org.gradle.kotlin.dsl.dependenciesInformation
 import org.gradle.language.jvm.tasks.ProcessResources
-import team.idealstate.glass.context.release.MultiRelease
 import team.idealstate.glass.context.util.Extensions
+import team.idealstate.glass.context.util.Plugins
 import team.idealstate.glass.data.dependency.ScopedDependencyInformation
 import team.idealstate.glass.plugin.java.data.JavaApplication
-import team.idealstate.glass.plugin.java.data.JavaRelease
-import team.idealstate.glass.plugin.java.data.JavaReleaseContainer
 import team.idealstate.glass.plugin.java.task.CopyrightTask
-import team.idealstate.glass.plugin.java.task.DependenciesInformationTask
-import team.idealstate.glass.plugin.java.task.MultiReleaseClassesSourceTask
-import team.idealstate.glass.plugin.java.task.MultiReleaseClassesTask
+import team.idealstate.glass.plugin.java.task.MavenPomTask
+import team.idealstate.glass.plugin.java.task.MavenPomTask.Companion.ROOT_NAME
 import team.idealstate.glass.plugin.java.task.RelocateTask
 import team.idealstate.glass.plugin.java.task.SourcesTask
 import team.idealstate.glass.plugin.java.task.UnzipInternalDependenciesTask
-import java.nio.charset.Charset
+import team.idealstate.glass.plugin.publishing.ConfigurePublishing
+import java.util.Locale.getDefault
+import kotlin.text.get
 
 open class GlassJavaExtension(
     private val project: Project,
@@ -145,17 +142,21 @@ open class GlassJavaExtension(
         }
     }
 
-    fun withDependenciesInformation() {
+    fun withMavenPom() {
         if (enable(FEATURE_WITH_DEPENDENCIES_INFORMATION)) return
-        val dependenciesInformationTask = DependenciesInformationTask.register(project)
-        project.tasks.named("processResources", ProcessResources::class.java) {
-            it.dependsOn(dependenciesInformationTask)
-            it.from(dependenciesInformationTask) { copy ->
-                copy.into("META-INF/")
+        if (!project.pluginManager.hasPlugin(Plugins.glass(Plugins.publishing))) {
+            throw IllegalStateException("plugin glass(${Plugins.publishing}) is required.")
+        }
+        val tasks = project.tasks
+        val mavenPomTask = MavenPomTask.register(project)
+        tasks.named("processResources", ProcessResources::class.java) {
+            it.dependsOn(mavenPomTask)
+            it.from(mavenPomTask) { copy ->
+                copy.into("META-INF/maven/${project.group}/${project.name}/")
             }
         }
-        addSources(dependenciesInformationTask) { copy ->
-            copy.into("META-INF/")
+        addSources(mavenPomTask) { copy ->
+            copy.into("META-INF/maven/${project.group}/${project.name}/")
         }
     }
 
@@ -183,17 +184,34 @@ open class GlassJavaExtension(
         }
     }
 
-    fun withInternal() {
-        if (enable(FEATURE_WITH_INTERNAL)) return
+    fun withInternal(module: String? = null) {
+        if (enable(FEATURE_WITH_INTERNAL)) {
+            module?.let {
+                this.module.set(it)
+            }
+            return
+        }
         mustBefore(FEATURE_WITH_INTERNAL, FEATURE_MULTI_RELEASE)
-        val configurations = project.configurations
-        val internal = configurations.named(ConfigureJava.CONFIGURATION_INTERNAL_NAME).get()
+        module?.let {
+            this.module.set(it)
+        }
         val sourceSets = Extensions.sourceSets(project)
         val mainSourceSet = sourceSets.named(SourceSet.MAIN_SOURCE_SET_NAME).get()
-        val testSourceSet = sourceSets.named(SourceSet.TEST_SOURCE_SET_NAME).get()
-        for (sourceSet in arrayOf(mainSourceSet, testSourceSet)) {
-            sourceSet.compileClasspath += internal
-        }
+//        val testSourceSet = sourceSets.named(SourceSet.TEST_SOURCE_SET_NAME).get()
+//        val configurations = project.configurations
+//        val internal = configurations.named(ConfigureJava.CONFIGURATION_INTERNAL_NAME).get()
+//        for (sourceSet in arrayOf(mainSourceSet, testSourceSet)) {
+//            if (shadow) {
+////                val implementation = configurations.named(sourceSet.implementationConfigurationName).get()
+////                implementation.extendsFrom += internal
+//                sourceSet.compileClasspath += internal
+//                sourceSet.runtimeClasspath += internal
+//            } else {
+////                val compileOnly = configurations.named(sourceSet.compileOnlyConfigurationName).get()
+////                compileOnly.extendsFrom += internal
+//                sourceSet.compileClasspath += internal
+//            }
+//        }
         val unzipInternalDependenciesTask = UnzipInternalDependenciesTask.register(project)
         val relocateTask =
             RelocateTask.register(project) {
@@ -204,7 +222,6 @@ open class GlassJavaExtension(
             it.dependsOn(unzipInternalDependenciesTask, relocateTask)
             it.from(unzipInternalDependenciesTask) { copy ->
                 copy.includeEmptyDirs = false
-                copy.duplicatesStrategy = DuplicatesStrategy.WARN
             }
             it.from(relocateTask)
 
@@ -239,138 +256,140 @@ open class GlassJavaExtension(
         }
     }
 
-    fun multiRelease(action: Action<MultiRelease>) {
-        if (enable(FEATURE_MULTI_RELEASE)) return
-        val multiRelease = MultiRelease(project)
-        action.execute(multiRelease)
-        configureJavaMultiRelease(multiRelease.java)
-    }
-
-    private fun configureJavaMultiRelease(releaseContainer: JavaReleaseContainer) {
-        val tasks = project.tasks
-        val multiReleaseClassesTask = MultiReleaseClassesTask.register(project)
-        val sourceSets = Extensions.sourceSets(project)
-        releaseContainer.all.forEach { release ->
-            val name = release.name
-            val sourceSet: SourceSet
-            if (release.isReserved()) {
-                sourceSet = sourceSets.named(name).get()
-                tasks.named(sourceSet.compileJavaTaskName, JavaCompile::class.java) {
-                    configureMultiReleaseCompileJavaTask(release, it)
-                }
-                return@forEach
-            } else {
-                val mainSourceSet = sourceSets.named(JavaRelease.MAIN_NAME).get()
-                sourceSet =
-                    sourceSets
-                        .register(name) {
-                            it.compileClasspath += mainSourceSet.compileClasspath + mainSourceSet.output
-                            it.runtimeClasspath += mainSourceSet.runtimeClasspath
-                            it.annotationProcessorPath += mainSourceSet.annotationProcessorPath
-                        }.get()
-            }
-
-            tasks.named(SourcesTask.NAME, SourcesTask::class.java) {
-                it.sourceSet(name) { copy ->
-                    copy.into(release.location)
-                }
-            }
-
-            tasks.named(sourceSet.compileJavaTaskName, JavaCompile::class.java) {
-                it.doFirst { _ ->
-                    val excludes = MultiReleaseClassesSourceTask.sourceSetJavaRelativeFiles(sourceSet, project.objects)
-                    populateMultiReleaseCompileJavaTaskSources(sourceSets, releaseContainer, release, excludes, it)
-                }
-                configureMultiReleaseCompileJavaTask(release, it)
-            }
-
-            MultiReleaseClassesSourceTask.register(project, release)
-
-            multiReleaseClassesTask.configure {
-                it.source(release)
-            }
-        }
-
-        RelocateTask.of(project) {
-            it.dependsOn(multiReleaseClassesTask)
-            it.source(
-                project.provider {
-                    project.objects
-                        .directoryProperty()
-                        .apply {
-                            set(multiReleaseClassesTask.get().destinationDir)
-                        }.get()
-                },
-            )
-        }
-
-        tasks.named(ConfigureJava.JAR_TASK_NAME, Jar::class.java) {
-            it.dependsOn(multiReleaseClassesTask)
-            it.from(multiReleaseClassesTask)
-            it.manifest.attributes(mapOf("Multi-Release" to true))
-        }
-    }
-
-    private fun configureMultiReleaseCompileJavaTask(
-        release: JavaRelease,
-        task: JavaCompile,
-    ) {
-        val version = release.javaLanguageVersion
-        val options = task.options
-        options.encoding = Charset.defaultCharset().name()
-        if (version.canCompileOrRun(JavaRelease.LEAST_MULTI_RELEASE_VERSION)) {
-            options.compilerArgs.addAll(
-                listOf(
-                    "--module-path",
-                    task.classpath.asPath,
-                ),
-            )
-        }
-        release.apply(options)
-        options.release.set(version.asInt())
-    }
-
-    private fun populateMultiReleaseCompileJavaTaskSources(
-        sourceSets: SourceSetContainer,
-        releaseContainer: JavaReleaseContainer,
-        release: JavaRelease,
-        excludes: Set<String>,
-        compileJavaTask: JavaCompile,
-    ) {
-        if (excludes.isEmpty()) {
-            return
-        }
-
-        val releases = releaseContainer.canCompileOrRunOn(release.javaLanguageVersion)
-        releaseContainer.main.get().also {
-            val sourceSet = sourceSets.getByName(it.name)
-            populateMultiReleaseCompileJavaTaskSource(excludes, sourceSet, compileJavaTask)
-        }
-        for (other in releases) {
-            if (other.isReserved() || other == release) continue
-            val sourceSet = sourceSets.getByName(other.name)
-            populateMultiReleaseCompileJavaTaskSource(excludes, sourceSet, compileJavaTask)
-        }
-    }
-
-    private fun populateMultiReleaseCompileJavaTaskSource(
-        excludes: Set<String>,
-        sourceSet: SourceSet,
-        compileJavaTask: JavaCompile,
-    ) {
-        for (sourceDirectory in sourceSet.java.sourceDirectories) {
-            val directory =
-                project.objects
-                    .directoryProperty()
-                    .apply {
-                        set(sourceDirectory)
-                    }.get()
-            directory.asFileTree.files.forEach { sourceFile ->
-                val relativePath = sourceFile.toRelativeString(sourceDirectory)
-                if (!excludes.contains(relativePath)) {
-                    compileJavaTask.source(sourceFile)
-                }
-            }
-        }
-    }
+//    fun multiRelease(action: Action<MultiRelease>) {
+//        if (enable(FEATURE_MULTI_RELEASE)) return
+//        val multiRelease = MultiRelease(project)
+//        action.execute(multiRelease)
+//
+//        val tasks = project.tasks
+//        val multiReleaseClassesTask = MultiReleaseClassesTask.register(project)
+//        val sourceSets = Extensions.sourceSets(project)
+//        val releaseContainer = multiRelease.java
+//        val releases =
+//            releaseContainer.all.apply {
+//                removeFirst()
+//            }
+//        val mainRelease = releaseContainer.main.get()
+//        var last: Triple<SourceSet, MutableList<JavaSourceFile>, TaskProvider<CollectMultiReleaseClassesTask>?> =
+//            processMultiReleaseSourceSet(tasks, sourceSets, mainRelease, null)
+//        for (release in releases) {
+//            last = processMultiReleaseSourceSet(tasks, sourceSets, release, last)
+//        }
+//
+//        RelocateTask.of(project) {
+//            it.dependsOn(multiReleaseClassesTask)
+//            it.source(
+//                project.provider {
+//                    project.objects
+//                        .directoryProperty()
+//                        .apply {
+//                            set(multiReleaseClassesTask.get().destinationDir)
+//                        }.get()
+//                },
+//            )
+//        }
+//
+//        tasks.named(ConfigureJava.JAR_TASK_NAME, Jar::class.java) {
+//            it.dependsOn(multiReleaseClassesTask)
+//            it.from(multiReleaseClassesTask)
+//            it.manifest.attributes(mapOf("Multi-Release" to true))
+//        }
+//    }
+//
+//    private fun processMultiReleaseSourceSet(
+//        tasks: TaskContainer,
+//        sourceSets: SourceSetContainer,
+//        release: JavaRelease,
+//        last: Triple<SourceSet, MutableList<JavaSourceFile>, TaskProvider<CollectMultiReleaseClassesTask>?>?,
+//    ): Triple<SourceSet, MutableList<JavaSourceFile>, TaskProvider<CollectMultiReleaseClassesTask>?> {
+//        val name = release.name
+//        if (release.isReserved()) {
+//            val sourceSet = sourceSets.named(name).get()
+//            tasks.named(sourceSet.compileJavaTaskName, JavaCompile::class.java) {
+//                configureMultiReleaseCompileJavaTask(release, it)
+//            }
+//            return Triple(sourceSet, collectMultiReleaseJavaSourceFiles(sourceSet, LinkedList()), null)
+//        }
+//        last ?: error("The first release must be a reserved release.")
+//        val (lastSourceSet, lastJavaSourceFiles, multiReleaseClassesSourceTask) = last
+//        val sourceSet =
+//            sourceSets
+//                .register(name) {
+//                    it.compileClasspath += lastSourceSet.compileClasspath + lastSourceSet.output
+//                    it.runtimeClasspath += lastSourceSet.runtimeClasspath
+//                    it.annotationProcessorPath += lastSourceSet.annotationProcessorPath
+//                }.get()
+//
+//        val location = release.location
+//        tasks.named(SourcesTask.NAME, SourcesTask::class.java) {
+//            it.sourceSet(name) { copy ->
+//                copy.into(location)
+//            }
+//        }
+//        val javaSourceFiles = collectMultiReleaseJavaSourceFiles(sourceSet, lastJavaSourceFiles)
+//        val lastJavaSources = lastJavaSourceFiles.map(JavaSourceFile::file)
+//        lastJavaSourceFiles.addAll(javaSourceFiles)
+//        tasks.named(sourceSet.compileJavaTaskName, JavaCompile::class.java) {
+//            multiReleaseClassesSourceTask?.also { that ->
+//                it.dependsOn(that)
+//            }
+//            it.source(lastJavaSources)
+//            configureMultiReleaseCompileJavaTask(release, it)
+//        }
+//
+//        val collectMultiReleaseClassesTask = CollectMultiReleaseClassesTask.register(project, release)
+//
+//        MultiReleaseClassesTask.of(project) {
+//            it.source(release)
+//        }
+//
+//        return Triple(sourceSet, lastJavaSourceFiles, collectMultiReleaseClassesTask)
+//    }
+//
+//    private fun collectMultiReleaseJavaSourceFiles(
+//        sourceSet: SourceSet,
+//        lastJavaSourceFiles: MutableList<JavaSourceFile>,
+//    ): MutableList<JavaSourceFile> {
+//        val javaSourceFiles = LinkedList<JavaSourceFile>()
+//        for (baseDir in sourceSet.java.srcDirs) {
+//            baseDir.exists() || baseDir.isFile || continue
+//            val files = project.fileTree(baseDir).files
+//            for (file in files) {
+//                val javaFile = JavaFile.of(baseDir, file)
+//                if (javaFile is JavaSourceFile) {
+//                    if (lastJavaSourceFiles.isNotEmpty()) {
+//                        val location = javaFile.location
+//                        val iterator = lastJavaSourceFiles.iterator()
+//                        while (iterator.hasNext()) {
+//                            val lastJavaSourceFile = iterator.next()
+//                            if (lastJavaSourceFile.location == location) {
+//                                iterator.remove()
+//                            }
+//                        }
+//                    }
+//                    javaSourceFiles.add(javaFile)
+//                }
+//            }
+//        }
+//        return javaSourceFiles
+//    }
+//
+//    private fun configureMultiReleaseCompileJavaTask(
+//        release: JavaRelease,
+//        task: JavaCompile,
+//    ) {
+//        val version = release.javaLanguageVersion
+//        val options = task.options
+//        options.encoding = Charset.defaultCharset().name()
+//        if (version.canCompileOrRun(JavaRelease.LEAST_MULTI_RELEASE_VERSION)) {
+//            options.compilerArgs.addAll(
+//                listOf(
+//                    "--module-path",
+//                    task.classpath.asPath,
+//                ),
+//            )
+//        }
+//        release.apply(options)
+//        options.release.set(version.asInt())
+//    }
 }

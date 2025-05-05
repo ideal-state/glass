@@ -16,6 +16,8 @@
 
 @file:Suppress("unused", "UnusedReceiverParameter")
 
+package org.gradle.kotlin.dsl
+
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -25,32 +27,27 @@ fun PluginDependenciesSpec.spotless(id: String): PluginDependencySpec = id(Plugi
 
 fun ObjectConfigurationAction.spotless(id: String): ObjectConfigurationAction = plugin(Plugins.spotless(id))
 
-val PluginDependenciesSpec.gradle: String
+val PluginDependenciesSpec.GRADLE: String
     get() = Plugins.gradle
-val ObjectConfigurationAction.gradle: String
+val ObjectConfigurationAction.GRADLE: String
     get() = Plugins.gradle
 
-// val PluginDependenciesSpec.java: String
-//    get() = Plugins.java
-// val ObjectConfigurationAction.java: String
-//    get() = Plugins.java
-
-val PluginDependenciesSpec.kotlin: String
+val PluginDependenciesSpec.KOTLIN: String
     get() = Plugins.kotlin
-val ObjectConfigurationAction.kotlin: String
+val ObjectConfigurationAction.KOTLIN: String
     get() = Plugins.kotlin
 
-val PluginDependenciesSpec.json: String
+val PluginDependenciesSpec.JSON: String
     get() = Plugins.json
-val ObjectConfigurationAction.json: String
+val ObjectConfigurationAction.JSON: String
     get() = Plugins.json
 
-val PluginDependenciesSpec.yaml: String
+val PluginDependenciesSpec.YAML: String
     get() = Plugins.yaml
-val ObjectConfigurationAction.yaml: String
+val ObjectConfigurationAction.YAML: String
     get() = Plugins.yaml
 
-val PluginDependenciesSpec.sql: String
+val PluginDependenciesSpec.SQL: String
     get() = Plugins.sql
-val ObjectConfigurationAction.sql: String
+val ObjectConfigurationAction.SQL: String
     get() = Plugins.sql

@@ -16,6 +16,8 @@
 
 @file:Suppress("unused", "UnusedReceiverParameter")
 
+package org.gradle.kotlin.dsl
+
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.jvm.toolchain.JavaLanguageVersion

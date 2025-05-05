@@ -27,18 +27,10 @@ interface ReleaseContainer<V : Any, O : Any, R : Release<V, O>> :
     override val all: Set<R>
 
     val main: MarkedProvider<V, R>
-    val test: MarkedProvider<V, R>
 
     fun main(version: V): MarkedProvider<V, R>
 
     fun main(
-        version: V,
-        action: Action<in R>,
-    ): MarkedProvider<V, R>
-
-    fun test(version: V): MarkedProvider<V, R>
-
-    fun test(
         version: V,
         action: Action<in R>,
     ): MarkedProvider<V, R>

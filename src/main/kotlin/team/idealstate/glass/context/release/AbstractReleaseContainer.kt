@@ -38,10 +38,10 @@ abstract class AbstractReleaseContainer<V : Any, O : Any, R : Release<V, O>>(
         delegate.observeBy(Observer())
     }
 
-    override fun release(version: V): MarkedProvider<V, R> = delegate.register(version)
+    override fun release(version: V): MarkedProvider<V, R> = register(version)
 
     override fun release(
         version: V,
         action: Action<in R>,
-    ): MarkedProvider<V, R> = delegate.register(version, action)
+    ): MarkedProvider<V, R> = register(version, action)
 }

@@ -67,9 +67,9 @@ open class MultiReleaseClassesTask : Copy() {
     }
 
     fun source(release: JavaRelease) {
-        val multiReleaseClassesSourceTask = MultiReleaseClassesSourceTask.of(project, release)
-        dependsOn(multiReleaseClassesSourceTask)
-        from(multiReleaseClassesSourceTask) {
+        val collectMultiReleaseClassesTask = CollectMultiReleaseClassesTask.of(project, release)
+        dependsOn(collectMultiReleaseClassesTask)
+        from(collectMultiReleaseClassesTask) {
             it.includeEmptyDirs = false
             it.into(release.location)
         }

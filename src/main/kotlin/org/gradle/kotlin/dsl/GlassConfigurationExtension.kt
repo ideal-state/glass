@@ -16,6 +16,8 @@
 
 @file:Suppress("unused", "UnusedReceiverParameter")
 
+package org.gradle.kotlin.dsl
+
 import org.gradle.api.artifacts.Configuration
 import team.idealstate.glass.data.dependency.DependencyInformation
 import team.idealstate.glass.data.dependency.ScopedDependencyInformation

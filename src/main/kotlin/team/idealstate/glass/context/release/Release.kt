@@ -25,7 +25,7 @@ interface Release<V : Any, O : Any> : Marked<V> {
 
     fun isReserved(): Boolean =
         when (type) {
-            ReleaseType.MAIN, ReleaseType.TEST -> true
+            ReleaseType.MAIN -> true
             else -> false
         }
 

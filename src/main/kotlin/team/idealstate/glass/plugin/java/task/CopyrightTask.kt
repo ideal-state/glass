@@ -26,7 +26,7 @@ import org.gradle.api.tasks.TaskProvider
 open class CopyrightTask : Copy() {
     companion object {
         const val NAME = "copyright"
-        const val ROOT_NAME = "COPYRIGHT"
+        const val ROOT_NAME = "copyright"
         const val LICENSE_FILE = "LICENSE.txt"
         const val NOTICE_FILE = "NOTICE.txt"
         const val LICENSES_DIR = "LICENSES/"

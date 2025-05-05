@@ -16,6 +16,8 @@
 
 @file:Suppress("unused", "UnusedReceiverParameter")
 
+package org.gradle.kotlin.dsl
+
 import org.gradle.api.Action
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
@@ -41,35 +43,25 @@ fun RepositoryHandler.project(): MavenArtifactRepository {
     }
 }
 
+val RepositoryHandler.SNAPSHOT: String
+    get() = "SNAPSHOT"
+
 fun RepositoryHandler.aliyun(): MavenArtifactRepository =
     maven {
         it.name = "Aliyun"
         it.url = URI.create("https://maven.aliyun.com/repository/public/")
     }
 
-fun RepositoryHandler.sonatype(): MavenArtifactRepository =
-    maven {
-        it.name = "Sonatype"
-        it.url = URI.create("https://s01.oss.sonatype.org/content/groups/public/")
+fun RepositoryHandler.sonatype(type: String = "", action: Action<in MavenArtifactRepository> = Action { }): MavenArtifactRepository {
+    val maven = maven {
+        if (SNAPSHOT.equals(type, true)) {
+            it.name = "Sonatype-Snapshots"
+            it.url = URI.create("https://central.sonatype.com/repository/maven-snapshots/")
+        } else {
+            it.name = "Sonatype"
+            it.url = URI.create("https://repo1.maven.org/maven2/")
+        }
     }
-
-fun RepositoryHandler.sonatypeReleases(action: Action<MavenArtifactRepository> = Action {}): MavenArtifactRepository =
-    maven {
-        it.name = "Sonatype-Releases"
-        it.url = URI.create("https://s01.oss.sonatype.org/content/repositories/releases/")
-        action.execute(it)
-    }
-
-fun RepositoryHandler.sonatypeSnapshots(action: Action<MavenArtifactRepository> = Action {}): MavenArtifactRepository =
-    maven {
-        it.name = "Sonatype-Snapshots"
-        it.url = URI.create("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-        action.execute(it)
-    }
-
-fun RepositoryHandler.sonatypeStaging(action: Action<MavenArtifactRepository>): MavenArtifactRepository =
-    maven {
-        it.name = "Sonatype-Staging"
-        it.url = URI.create("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-        action.execute(it)
-    }
+    action.execute(maven)
+    return maven
+}

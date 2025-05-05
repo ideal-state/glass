@@ -19,6 +19,7 @@ package team.idealstate.glass.context.util
 object ClassUtils {
     const val CLASS_DELIMITER = '.'
     const val INTERNAL_DELIMITER = '/'
+    const val SOURCE_FILE_EXTENSION_NAME = ".java"
     const val CLASS_FILE_EXTENSION_NAME = ".class"
     const val MODULE_INFO_FILE_NAME = "module-info.class"
     const val PACKAGE_INFO_FILE_NAME = "package-info.class"
@@ -59,6 +60,9 @@ object ClassUtils {
 
     @JvmStatic
     fun normalize(internalName: String): String = internalName.replace(INTERNAL_DELIMITER, CLASS_DELIMITER).trim(CLASS_DELIMITER)
+
+    @JvmStatic
+    fun maybeSourceFile(fileName: String): Boolean = fileName.endsWith(SOURCE_FILE_EXTENSION_NAME)
 
     @JvmStatic
     fun maybeClassFile(fileName: String): Boolean = fileName.endsWith(CLASS_FILE_EXTENSION_NAME)

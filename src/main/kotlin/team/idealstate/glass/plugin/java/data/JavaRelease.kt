@@ -32,7 +32,6 @@ class JavaRelease(
 ) : AbstractRelease<Int, CompileOptions>() {
     companion object {
         const val MAIN_NAME = "main"
-        const val TEST_NAME = "test"
         const val EXTEND_NAME_PREFIX = "java"
         const val LEAST_MULTI_RELEASE_VERSION = 9
     }
@@ -59,7 +58,6 @@ class JavaRelease(
         get() =
             when (type) {
                 ReleaseType.MAIN -> MAIN_NAME
-                ReleaseType.TEST -> TEST_NAME
                 else -> EXTEND_NAME_PREFIX + version
             }
 

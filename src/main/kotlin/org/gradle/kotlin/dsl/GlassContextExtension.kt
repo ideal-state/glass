@@ -16,6 +16,14 @@
 
 @file:Suppress("unused", "UnusedReceiverParameter")
 
-import org.gradle.api.Action
+package org.gradle.kotlin.dsl
 
-fun <T> Any.action(action: Action<T>): Action<T> = action
+import org.gradle.api.Action
+import org.gradle.api.Project
+import team.idealstate.glass.GlassContext
+
+fun Project.context(action: Action<in GlassContext>) {
+    val context = GlassContext(this)
+    action.execute(context)
+    context.apply()
+}

@@ -14,18 +14,10 @@
  *    limitations under the License.
  */
 
-package team.idealstate.glass.context.release
+@file:Suppress("unused", "UnusedReceiverParameter")
+
+package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
-import org.gradle.api.Project
-import team.idealstate.glass.plugin.java.data.JavaReleaseContainer
 
-class MultiRelease(
-    project: Project,
-) {
-    val java = JavaReleaseContainer(project, "java")
-
-    fun java(action: Action<JavaReleaseContainer>) {
-        action.execute(java)
-    }
-}
+fun <T> Any.action(action: Action<T>): Action<T> = action

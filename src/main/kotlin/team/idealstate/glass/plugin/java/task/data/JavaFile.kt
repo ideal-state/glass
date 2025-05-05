@@ -28,7 +28,6 @@ interface JavaFile {
             baseDir: File,
             file: File,
         ): JavaFile {
-            val fileName = file.name
             var processPath =
                 PathUtils
                     .normalize(file.toRelativeString(baseDir))
@@ -55,20 +54,27 @@ interface JavaFile {
             } else {
                 processPath = ""
             }
+            val fullFileName = file.name
             var packageName = PathUtils.normalize(processPath)
-            if (ClassUtils.maybeClassFile(fileName)) {
+            if (ClassUtils.maybeClassFile(fullFileName)) {
                 packageName = ClassUtils.internalize(packageName)
-                val internalPath = ClassUtils.internalize(packageName, fileName.substringBeforeLast(ClassUtils.CLASS_FILE_EXTENSION_NAME))
+                val fileName = fullFileName.substringBeforeLast(ClassUtils.CLASS_FILE_EXTENSION_NAME)
+                val internalPath = ClassUtils.internalize(packageName, fileName)
                 val internalName: String
                 file.inputStream().use { stream ->
                     val classReader = ClassReader(stream)
                     internalName = classReader.className
                 }
                 if (internalPath == internalName) {
-                    return JavaClassFile(baseDir, file, release, packageName, fileName, ClassUtils.normalize(internalName))
+                    return JavaClassFile(baseDir, file, release, packageName, fileName, ClassUtils.CLASS_FILE_EXTENSION_NAME, ClassUtils.normalize(internalName))
                 }
             }
-            return JavaResourceFile(baseDir, file, release, packageName, fileName)
+            if (ClassUtils.maybeSourceFile(fullFileName)) {
+                return JavaSourceFile(baseDir, file, release, packageName, fullFileName.substringBeforeLast(ClassUtils.SOURCE_FILE_EXTENSION_NAME), ClassUtils.SOURCE_FILE_EXTENSION_NAME)
+            }
+            val fileName = fullFileName.substringBefore('.')
+            val extension = '.' + fullFileName.substringAfter('.')
+            return JavaResourceFile(baseDir, file, release, packageName, fileName, extension)
         }
     }
 
@@ -76,19 +82,20 @@ interface JavaFile {
     val file: File
     val release: Int?
     val packageName: String
-    val fileName: String
+    val name: String
+    val extension: String
 
     val location: String
         get() =
             if (release == null) {
-                ClassUtils.internalize(packageName, fileName)
+                ClassUtils.internalize(packageName, name) + extension
             } else {
                 ClassUtils.internalize(
                     ClassUtils.MULTI_RELEASE_DIR_PATH_NAME,
                     release.toString(),
                     packageName,
-                    fileName,
-                )
+                    name,
+                ) + extension
             }
 
     fun location(base: File): File = File(base, location)

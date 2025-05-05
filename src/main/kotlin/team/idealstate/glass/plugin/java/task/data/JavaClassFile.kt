@@ -24,7 +24,8 @@ open class JavaClassFile(
     override val file: File,
     override val release: Int?,
     override val packageName: String,
-    override val fileName: String,
+    override val name: String,
+    override val extension: String,
     val className: String,
 ) : JavaFile {
     enum class Type {
@@ -35,7 +36,7 @@ open class JavaClassFile(
 
     val type: Type
         get() {
-            val fileName = this.fileName
+            val fileName = this.file.name
             if (ClassUtils.maybeModuleInfoFile(fileName)) {
                 return Type.MODULE_INFO
             }

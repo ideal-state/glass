@@ -14,18 +14,17 @@
  *    limitations under the License.
  */
 
-@file:Suppress("unused", "UnusedReceiverParameter")
+package team.idealstate.glass.plugin.java.data
 
 import org.gradle.api.Action
-import org.gradle.api.NamedDomainObjectProvider
-import org.gradle.api.publish.PublicationContainer
-import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.Project
 
-private const val MAIN_NAME = "main"
+class MultiRelease(
+    project: Project,
+) {
+    val java = JavaReleaseContainer(project, "java")
 
-fun PublicationContainer.main(configureAction: Action<MavenPublication> = Action {}): NamedDomainObjectProvider<MavenPublication> {
-    if (names.contains(MAIN_NAME)) {
-        return named(MAIN_NAME, MavenPublication::class.java, configureAction)
+    fun java(action: Action<JavaReleaseContainer>) {
+        action.execute(java)
     }
-    return register(MAIN_NAME, MavenPublication::class.java, configureAction)
 }

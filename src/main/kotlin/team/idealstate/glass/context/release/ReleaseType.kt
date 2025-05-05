@@ -18,6 +18,5 @@ package team.idealstate.glass.context.release
 
 enum class ReleaseType {
     MAIN,
-    TEST,
     EXTEND,
 }

@@ -16,6 +16,8 @@
 
 @file:Suppress("unused", "UnusedReceiverParameter")
 
+package org.gradle.kotlin.dsl
+
 import org.gradle.api.initialization.Settings
 import team.idealstate.glass.context.util.PathUtils
 import java.io.File

@@ -16,6 +16,8 @@
 
 @file:Suppress("unused", "UnusedReceiverParameter")
 
+package org.gradle.kotlin.dsl
+
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -25,17 +27,17 @@ fun PluginDependenciesSpec.glass(id: String): PluginDependencySpec = id(Plugins.
 
 fun ObjectConfigurationAction.glass(id: String): ObjectConfigurationAction = plugin(Plugins.glass(id))
 
-val PluginDependenciesSpec.java: String
+val PluginDependenciesSpec.JAVA: String
     get() = Plugins.java
-val ObjectConfigurationAction.java: String
+val ObjectConfigurationAction.JAVA: String
     get() = Plugins.java
 
-val PluginDependenciesSpec.maven_publish: String
-    get() = Plugins.maven_publish
-val ObjectConfigurationAction.maven_publish: String
-    get() = Plugins.maven_publish
+val PluginDependenciesSpec.PUBLISHING: String
+    get() = Plugins.publishing
+val ObjectConfigurationAction.PUBLISHING: String
+    get() = Plugins.publishing
 
-val PluginDependenciesSpec.signing: String
+val PluginDependenciesSpec.SIGNING: String
     get() = Plugins.signing
-val ObjectConfigurationAction.signing: String
+val ObjectConfigurationAction.SIGNING: String
     get() = Plugins.signing

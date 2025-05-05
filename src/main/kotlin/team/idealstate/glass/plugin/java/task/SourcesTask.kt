@@ -22,9 +22,10 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.work.DisableCachingByDefault
 import team.idealstate.glass.context.util.Extensions
 
-@CacheableTask
+@DisableCachingByDefault
 open class SourcesTask : Copy() {
     companion object {
         const val NAME = "sources"

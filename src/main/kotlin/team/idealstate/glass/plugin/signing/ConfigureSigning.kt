@@ -16,10 +16,7 @@
 
 package team.idealstate.glass.plugin.signing
 
-import glass
-import main
-import maven_publish
-import signing
+import org.gradle.kotlin.dsl.main
 import team.idealstate.glass.context.util.Extensions
 import team.idealstate.glass.context.util.Plugins
 import team.idealstate.glass.plugin.Configure
@@ -32,7 +29,7 @@ open class ConfigureSigning : Configure() {
     override fun apply() {
         val signing = Extensions.signing(project)
         signing.useGpgCmd()
-        if (project.pluginManager.hasPlugin(Plugins.glass(Plugins.maven_publish))) {
+        if (project.pluginManager.hasPlugin(Plugins.glass(Plugins.publishing))) {
             val publishing = Extensions.publishing(project)
             signing.sign(publishing.publications.main().get())
         }

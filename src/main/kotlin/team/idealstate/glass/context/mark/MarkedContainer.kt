@@ -49,6 +49,13 @@ interface MarkedContainer<T : Any, M : Marked<T>> : Observed<MarkedObserver<T, i
         action: Action<in M>,
     ): MarkedProvider<T, M>
 
+    fun add(markedProvider: MarkedProvider<out T, out M>): MarkedProvider<T, M>
+
+    fun add(
+        markedProvider: MarkedProvider<out T, out M>,
+        action: Action<in M>,
+    ): MarkedProvider<T, M>
+
     fun replace(marked: M): MarkedProvider<T, M>?
 
     fun replace(

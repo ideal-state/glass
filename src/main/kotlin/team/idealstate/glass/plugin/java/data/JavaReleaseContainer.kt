@@ -19,14 +19,14 @@ package team.idealstate.glass.plugin.java.data
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.tasks.compile.CompileOptions
-import org.gradle.jvm.toolchain.JavaLanguageVersion
 import team.idealstate.glass.context.mark.MarkedContainer
+import team.idealstate.glass.context.mark.MarkedObserver
 import team.idealstate.glass.context.mark.MarkedProvider
 import team.idealstate.glass.context.release.AbstractReleaseContainer
 import team.idealstate.glass.context.release.ReleaseType
 import team.idealstate.glass.context.util.Validates
 import team.idealstate.glass.plugin.java.data.JavaRelease.Companion.MAIN_NAME
-import team.idealstate.glass.plugin.java.data.JavaRelease.Companion.TEST_NAME
+import java.util.SortedSet
 
 class JavaReleaseContainer(
     private val project: Project,
@@ -34,66 +34,34 @@ class JavaReleaseContainer(
 ) : AbstractReleaseContainer<Int, CompileOptions, JavaRelease>(
         MarkedContainer.create(JavaRelease.Factory(project)),
     ) {
-    private object JavaReleaseComparator : Comparator<JavaRelease> {
-        override fun compare(
-            o1: JavaRelease,
-            o2: JavaRelease,
-        ): Int {
-            val type1 = o1.type
-            val type2 = o2.type
-            if (type1 == type2) {
-                return o1.mark.compareTo(o2.mark)
+    private inner class Observer : MarkedObserver<Int, JavaRelease> {
+        override fun onAdd(marked: JavaRelease) {
+            if (marked.isReserved()) {
+                Validates.notPresent(_main, MAIN_NAME)
+                return
             }
-            if (o1.isReserved()) {
-                if (o2.isReserved()) {
-                    return if (type1 == ReleaseType.MAIN) {
-                        -1
-                    } else {
-                        1
-                    }
-                }
-                return -1
+            val main = main.get()
+            if (marked.version <= main.version) {
+                throw IllegalArgumentException("Java version must be greater than $MAIN_NAME(${main.version}). (it: ${marked.version})")
             }
-            if (o2.isReserved()) {
-                return 1
-            }
-            return o1.mark.compareTo(o2.mark)
         }
+    }
+
+    init {
+        super.observeBy(Observer())
     }
 
     private var _main: MarkedProvider<Int, JavaRelease>? = null
     override val main
         get() = Validates.isPresent(_main, MAIN_NAME)
 
-    private var _test: MarkedProvider<Int, JavaRelease>? = null
-    override val test
-        get() = Validates.isPresent(_test, TEST_NAME)
-
-    override val all: Set<JavaRelease>
+    override val all: SortedSet<JavaRelease>
         get() {
             Validates.isPresent(_main, MAIN_NAME)
-            val ret = sortedSetOf(JavaReleaseComparator)
-            val mainVersion = main.get().javaLanguageVersion
-            super.all.forEach {
-                if (!it.isReserved()) {
-                    val version = it.javaLanguageVersion
-                    if (!version.canCompileOrRun(mainVersion)) {
-                        throw IllegalArgumentException("Java version must be at least $MAIN_NAME($mainVersion). (it: $version)")
-                    }
-                }
-                ret.add(it)
-            }
-            return super.all.toSortedSet(JavaReleaseComparator).apply {
-                _test?.apply {
-                    add(get())
-                }
+            return sortedSetOf<JavaRelease>(Comparator.comparingInt { it.version }).apply {
+                addAll(super.all)
             }
         }
-
-    fun canCompileOrRunOn(version: JavaLanguageVersion): Set<JavaRelease> =
-        all
-            .filter { version.canCompileOrRun(it.version) }
-            .toSortedSet(Comparator.comparingInt { it.version })
 
     override fun main(version: Int): MarkedProvider<Int, JavaRelease> = add(JavaRelease(project, ReleaseType.MAIN, version))
 
@@ -105,19 +73,5 @@ class JavaReleaseContainer(
         val main = add(JavaRelease(project, ReleaseType.MAIN, version), action)
         this._main = main
         return main
-    }
-
-    override fun test(version: Int): MarkedProvider<Int, JavaRelease> = test(version) {}
-
-    override fun test(
-        version: Int,
-        action: Action<in JavaRelease>,
-    ): MarkedProvider<Int, JavaRelease> {
-        Validates.notPresent(_test, TEST_NAME)
-        this._test =
-            MarkedProvider.of(JavaRelease(project, ReleaseType.TEST, version)).apply {
-                action.execute(get())
-            }
-        return _test as MarkedProvider<Int, JavaRelease>
     }
 }

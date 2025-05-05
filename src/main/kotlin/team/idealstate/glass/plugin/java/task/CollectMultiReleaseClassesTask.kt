@@ -26,6 +26,8 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFiles
@@ -34,15 +36,17 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.language.jvm.tasks.ProcessResources
+import org.gradle.work.DisableCachingByDefault
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Opcodes
 import team.idealstate.glass.context.util.Extensions
+import team.idealstate.glass.context.util.Validates
 import team.idealstate.glass.plugin.java.data.JavaRelease
 import java.io.File
 
-@CacheableTask
-open class MultiReleaseClassesSourceTask : DefaultTask() {
+@DisableCachingByDefault
+open class CollectMultiReleaseClassesTask : DefaultTask() {
     companion object {
         @JvmStatic
         fun nameof(release: JavaRelease): String {
@@ -50,7 +54,7 @@ open class MultiReleaseClassesSourceTask : DefaultTask() {
                 release.name.replaceFirstChar {
                     if (it.isLowerCase()) it.titlecase() else it.toString()
                 }
-            return "multiRelease${multiReleaseName}ClassesSource"
+            return "collectMultiRelease${multiReleaseName}Classes"
         }
 
         @JvmStatic
@@ -78,10 +82,10 @@ open class MultiReleaseClassesSourceTask : DefaultTask() {
         fun register(
             project: Project,
             release: JavaRelease,
-        ): TaskProvider<MultiReleaseClassesSourceTask> =
+        ): TaskProvider<CollectMultiReleaseClassesTask> =
             project.tasks.register(
                 nameof(release),
-                MultiReleaseClassesSourceTask::class.java,
+                CollectMultiReleaseClassesTask::class.java,
             ) {
                 it.setup(release)
             }
@@ -90,26 +94,34 @@ open class MultiReleaseClassesSourceTask : DefaultTask() {
         fun of(
             project: Project,
             release: JavaRelease,
-        ): TaskProvider<MultiReleaseClassesSourceTask> =
+        ): TaskProvider<CollectMultiReleaseClassesTask> =
             project.tasks.named(
                 nameof(release),
-                MultiReleaseClassesSourceTask::class.java,
+                CollectMultiReleaseClassesTask::class.java,
             )
 
         @JvmStatic
         fun of(
             project: Project,
             release: JavaRelease,
-            action: Action<in MultiReleaseClassesSourceTask>,
-        ): TaskProvider<MultiReleaseClassesSourceTask> =
+            action: Action<in CollectMultiReleaseClassesTask>,
+        ): TaskProvider<CollectMultiReleaseClassesTask> =
             project.tasks.named(
                 nameof(release),
-                MultiReleaseClassesSourceTask::class.java,
+                CollectMultiReleaseClassesTask::class.java,
                 action,
             )
     }
 
-    private val release = project.objects.property(JavaRelease::class.java)
+    private var _release: JavaRelease? = null
+    @get:Internal
+    val release: JavaRelease
+        get() = Validates.isPresent(_release, "release")
+
+    private var _classesBaseDir: File? = null
+    @get:Internal
+    val classesBaseDir: File
+        get() = Validates.isPresent(_classesBaseDir, "classesBaseDir")
 
     @Optional
     @OutputFiles
@@ -119,11 +131,18 @@ open class MultiReleaseClassesSourceTask : DefaultTask() {
     @OutputDirectory
     val resources: DirectoryProperty = project.objects.directoryProperty()
 
+    @Suppress("unused")
+    @Input
+    protected val alwaysRun: Property<Long> =
+        project.objects.property(Long::class.java).apply {
+            set(project.provider { System.currentTimeMillis() })
+        }
+
     private val includes: Set<String> = mutableSetOf()
 
     @TaskAction
     protected open fun populateIncludes() {
-        val multiRelease = this.release.get()
+        val multiRelease = this.release
         if (multiRelease.isReserved()) {
             return
         }
@@ -147,7 +166,7 @@ open class MultiReleaseClassesSourceTask : DefaultTask() {
         val sourceSets = Extensions.sourceSets(project)
         val sourceSet = sourceSets.named(release.name).get()
         dependsOn(sourceSet.classesTaskName)
-        this.release.set(release)
+        this._release = release
         resources.set(
             project.provider {
                 val processResourcesTask = project.tasks.named(sourceSet.processResourcesTaskName, ProcessResources::class.java)
@@ -171,6 +190,7 @@ open class MultiReleaseClassesSourceTask : DefaultTask() {
                 .apply {
                     set(project.objects.fileTree())
                 }.get()
+        this._classesBaseDir = base
         classes.setDir(base)
         classes.exclude(ExcludeSpec(base, includes))
     }

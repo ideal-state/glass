@@ -23,8 +23,12 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.plugins.signing.SigningExtension
+import team.idealstate.glass.plugin.java.GlassJavaExtension
 
 object Extensions {
+    @JvmStatic
+    fun glass(project: Project): GlassJavaExtension = project.extensions.getByName("glass") as GlassJavaExtension
+
     @JvmStatic
     fun sourceSets(project: Project): SourceSetContainer = project.extensions.getByName("sourceSets") as SourceSetContainer
 

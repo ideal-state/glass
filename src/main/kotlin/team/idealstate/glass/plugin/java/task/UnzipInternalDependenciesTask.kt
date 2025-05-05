@@ -62,6 +62,7 @@ open class UnzipInternalDependenciesTask : ParallelCopy() {
         }
 
     init {
+        group = null
         destinationDir.set(
             project.layout.buildDirectory
                 .dir(ROOT_NAME)

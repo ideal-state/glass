@@ -207,5 +207,5 @@ jreleaser {
 
 val deploy by tasks.registering {
     group = "glass"
-    dependsOn(tasks.clean, tasks.spotlessApply, tasks.named("publishAllPublicationsToPrjectRepository"), tasks.jreleaserDeploy)
+    dependsOn(tasks.clean, tasks.spotlessApply, tasks.test, tasks.named("publishAllPublicationsToPrjectRepository"), tasks.jreleaserDeploy)
 }

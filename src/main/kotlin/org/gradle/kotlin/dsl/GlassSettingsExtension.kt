@@ -53,9 +53,20 @@ private fun Settings.findBuildScripts(
     return moduleIds
 }
 
+private val excludes =
+    setOf(
+        ":build:spotless-clean:spotlessGroovyGradle",
+        ":build:spotless-clean:spotlessKotlinGradle",
+    )
+private val loaded = mutableSetOf<String>()
+
 fun Settings.multiModule(root: String = "") {
     val rootPath = PathUtils.normalize(root.replace(MODULE_ID_DELIMITER, PathUtils.NORMAL_DELIMITER))
 
+    if (loaded.contains(rootPath)) {
+        return
+    }
+    loaded.add(rootPath)
     val modulesDirectory = File(rootProject.projectDir, rootPath)
     if (!modulesDirectory.exists()) {
         throw IllegalStateException("Modules directory is not exists.")
@@ -76,17 +87,28 @@ fun Settings.multiModule(root: String = "") {
         if (moduleId.isBlank() || moduleId == MODULE_ID_DELIMITER_STR) {
             return@forEach
         }
-        println(">> including $moduleId ....")
-        if (findProject(it.parentFile) != null) {
-            throw IllegalStateException("Module $moduleId already exists.")
+        for (exclude in excludes) {
+            if (moduleId.contains(exclude)) {
+                return@forEach
+            }
         }
-        include(moduleId)
+        println(">> including $moduleId ....")
+        val foundProject = findProject(it.parentFile)
+        val projectName =
+            "${rootProject.name}${moduleId.substring(rootPath.length)}".replace(
+                MODULE_ID_DELIMITER,
+                MODULE_NAME_DELIMITER,
+            )
+        if (foundProject != null) {
+            if (foundProject.name != projectName) {
+                throw IllegalStateException("Module $moduleId already exists.")
+            }
+        } else {
+            include(moduleId)
+        }
         val project = project(moduleId)
-
-        project.name =
-            "${rootProject.name}${moduleId.substring(rootPath.length)}"
-                .replace(MODULE_ID_DELIMITER, MODULE_NAME_DELIMITER)
-        println(">> included $moduleId (${project.name})")
+        project.name = projectName
+        println(">> included $moduleId ($projectName)")
         count++
     }
     println(">> $count modules included.\n")

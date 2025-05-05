@@ -53,7 +53,7 @@ private fun Settings.findBuildScripts(
     return moduleIds
 }
 
-fun Settings.includeModules(root: String = "") {
+fun Settings.multiModule(root: String = "") {
     val rootPath = PathUtils.normalize(root.replace(MODULE_ID_DELIMITER, PathUtils.NORMAL_DELIMITER))
 
     val modulesDirectory = File(rootProject.projectDir, rootPath)

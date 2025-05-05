@@ -70,12 +70,12 @@ open class ConfigureJava : Configure() {
     }
 
     private fun configureCompileJavaTask() {
-        val sourceSets = Extensions.sourceSets(project)
-        val mainSourceSet = sourceSets.named(SourceSet.MAIN_SOURCE_SET_NAME).get()
         val configurations = project.configurations
         val internal = configurations.register(CONFIGURATION_INTERNAL_NAME).get()
-        val implementation = configurations.named(mainSourceSet.implementationConfigurationName).get()
-        implementation.extendsFrom(internal)
+//        val sourceSets = Extensions.sourceSets(project)
+//        val mainSourceSet = sourceSets.named(SourceSet.MAIN_SOURCE_SET_NAME).get()
+//        val implementation = configurations.named(mainSourceSet.implementationConfigurationName).get()
+//        implementation.extendsFrom(internal)
         project.tasks.named("compileJava", JavaCompile::class.java) {
             it.doFirst { _ ->
                 it.options.encoding = Charset.defaultCharset().name()

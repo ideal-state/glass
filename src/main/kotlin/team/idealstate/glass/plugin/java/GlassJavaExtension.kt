@@ -31,6 +31,7 @@ import team.idealstate.glass.context.util.Extensions
 import team.idealstate.glass.context.util.Plugins
 import team.idealstate.glass.data.dependency.ScopedDependencyInformation
 import team.idealstate.glass.plugin.java.data.JavaApplication
+import team.idealstate.glass.plugin.java.data.JavaReleaseProperty
 import team.idealstate.glass.plugin.java.task.CopyrightTask
 import team.idealstate.glass.plugin.java.task.MavenPomTask
 import team.idealstate.glass.plugin.java.task.MavenPomTask.Companion.ROOT_NAME
@@ -108,6 +109,8 @@ open class GlassJavaExtension(
             set(project.provider { project.group.toString() })
         }
 
+    val release: Property<Int> = JavaReleaseProperty(project, project.objects.property(Int::class.java))
+
     val application: Property<JavaApplication> = project.objects.property(JavaApplication::class.java)
 
     fun application(action: Action<in JavaApplication>) {
@@ -181,7 +184,10 @@ open class GlassJavaExtension(
         }
     }
 
-    fun withInternal(module: String? = null) {
+    fun withInternal(
+        module: String? = null,
+        shadow: Boolean = true,
+    ) {
         if (enable(FEATURE_WITH_INTERNAL)) {
             module?.let {
                 this.module.set(it)
@@ -194,21 +200,17 @@ open class GlassJavaExtension(
         }
         val sourceSets = Extensions.sourceSets(project)
         val mainSourceSet = sourceSets.named(SourceSet.MAIN_SOURCE_SET_NAME).get()
-//        val testSourceSet = sourceSets.named(SourceSet.TEST_SOURCE_SET_NAME).get()
-//        val configurations = project.configurations
-//        val internal = configurations.named(ConfigureJava.CONFIGURATION_INTERNAL_NAME).get()
-//        for (sourceSet in arrayOf(mainSourceSet, testSourceSet)) {
-//            if (shadow) {
-// //                val implementation = configurations.named(sourceSet.implementationConfigurationName).get()
-// //                implementation.extendsFrom += internal
-//                sourceSet.compileClasspath += internal
-//                sourceSet.runtimeClasspath += internal
-//            } else {
-// //                val compileOnly = configurations.named(sourceSet.compileOnlyConfigurationName).get()
-// //                compileOnly.extendsFrom += internal
-//                sourceSet.compileClasspath += internal
-//            }
-//        }
+        val testSourceSet = sourceSets.named(SourceSet.TEST_SOURCE_SET_NAME).get()
+        val configurations = project.configurations
+        val internal = configurations.named(ConfigureJava.CONFIGURATION_INTERNAL_NAME).get()
+        for (sourceSet in arrayOf(mainSourceSet, testSourceSet)) {
+            if (shadow) {
+                sourceSet.compileClasspath += internal
+                sourceSet.runtimeClasspath += internal
+            } else {
+                sourceSet.compileClasspath += internal
+            }
+        }
         val unzipInternalDependenciesTask = UnzipInternalDependenciesTask.register(project)
         val relocateTask =
             RelocateTask.register(project) {

@@ -1,16 +1,18 @@
 import com.diffplug.gradle.spotless.HasBuiltinDelimiterForLicense
+import org.jreleaser.model.Active
 
 plugins {
-    embeddedKotlin("jvm")
     id("java-gradle-plugin")
-    id("com.diffplug.spotless") version "7.0.0.BETA4"
-    id("org.jetbrains.dokka") version "2.0.0-Beta"
-    id("com.gradle.plugin-publish") version "1.3.0"
     id("signing")
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.spotless)
+    alias(libs.plugins.plugin.publish)
+    alias(libs.plugins.jreleaser)
 }
 
 group = "team.idealstate.glass"
-version = "0.1.0"
+version = "0.1.0-SNAPSHOT"
 
 configurations {
     api {
@@ -27,14 +29,15 @@ repositories {
 dependencies {
     compileOnly(gradleApi())
 
-    implementation("org.ow2.asm:asm:9.7.1")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.2")
+    implementation(libs.asm)
+    implementation(libs.jackson.databind)
+    implementation(libs.jackson.module.kotlin)
 
-    implementation("org.gradle.toolchains:foojay-resolver:0.8.0")
-    implementation("com.diffplug.spotless:spotless-plugin-gradle:7.0.0.BETA4")
+    implementation(libs.foojay.resolver)
+    implementation(libs.spotless)
+//    implementation(libs.jreleaser)
 
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
+    testImplementation(platform(libs.junit.bom))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
@@ -49,8 +52,6 @@ kotlin {
     }
 }
 
-val encoding = Charsets.UTF_8
-
 gradlePlugin {
     website.set("https://docs.ideal-state.team/glass/")
     vcsUrl.set("https://gitlab.com/ideal-state/glass")
@@ -60,7 +61,6 @@ gradlePlugin {
             implementationClass = "team.idealstate.glass.Glass"
             displayName = "Glass"
             description = ""
-            @Suppress("UnstableApiUsage")
             tags.set(listOf("java", "repository", "configuration", "publish", "fatjar", "statistics"))
         }
     }
@@ -121,6 +121,10 @@ tasks.dokkaGenerate {
     finalizedBy(copyToJavadoc)
 }
 
+tasks.logLinkDokkaGeneratePublicationHtml {
+    enabled = false
+}
+
 val javadocJar by tasks.registering(Jar::class) {
     group = "build"
     dependsOn(tasks.dokkaGenerate)
@@ -141,7 +145,7 @@ spotless {
         }
     }
 
-    encoding(encoding)
+    encoding(Charsets.UTF_8)
 
     groovyGradle {
         target("*.gradle")
@@ -161,4 +165,47 @@ spotless {
         ktlint()
         applyLicenseHeader(this)
     }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "Project"
+            url = uri("file://${project.projectDir}/build/repository")
+        }
+    }
+}
+
+jreleaser {
+    dependsOnAssemble.set(false)
+    deploy {
+        maven {
+            mavenCentral {
+                create("release") {
+                    active.set(Active.RELEASE)
+                    url.set("https://central.sonatype.com/api/v1/publisher")
+                    sign.set(false)
+                    stagingRepository("build/repository")
+                }
+            }
+            nexus2 {
+                create("snapshot") {
+                    active.set(Active.SNAPSHOT)
+                    url.set("https://central.sonatype.com/repository/maven-snapshots")
+                    snapshotUrl.set("https://central.sonatype.com/repository/maven-snapshots")
+                    sign.set(false)
+                    applyMavenCentralRules.set(true)
+                    snapshotSupported.set(true)
+                    closeRepository.set(true)
+                    releaseRepository.set(true)
+                    stagingRepository("build/repository")
+                }
+            }
+        }
+    }
+}
+
+val deploy by tasks.registering {
+    group = "glass"
+    dependsOn(tasks.clean, tasks.spotlessApply, tasks.named("publishAllPublicationsToPrjectRepository"), tasks.jreleaserDeploy)
 }

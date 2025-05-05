@@ -38,6 +38,7 @@ open class ConfigureJava : Configure() {
         const val SOURCES_JAR_TASK_NAME = "sourcesJar"
         const val JAVADOC_JAR_TASK_NAME = "javadocJar"
         const val CONFIGURATION_INTERNAL_NAME = "internal"
+        const val CONFIGURATION_SHADOW_NAME = "shadow"
         const val CONFIGURATION_DOCLET_NAME = "doclet"
 
         @JvmStatic
@@ -74,6 +75,7 @@ open class ConfigureJava : Configure() {
     private fun configureCompileJavaTask() {
         val configurations = project.configurations
         val internal = configurations.register(CONFIGURATION_INTERNAL_NAME).get()
+        val shadow = configurations.register(CONFIGURATION_SHADOW_NAME).get()
 //        val sourceSets = Extensions.sourceSets(project)
 //        val mainSourceSet = sourceSets.named(SourceSet.MAIN_SOURCE_SET_NAME).get()
 //        val implementation = configurations.named(mainSourceSet.implementationConfigurationName).get()

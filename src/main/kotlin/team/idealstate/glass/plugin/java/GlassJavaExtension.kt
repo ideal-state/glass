@@ -28,17 +28,17 @@ import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import org.gradle.kotlin.dsl.dependenciesInformation
 import org.gradle.language.jvm.tasks.ProcessResources
 import team.idealstate.glass.context.util.Extensions
+import team.idealstate.glass.context.util.PathUtils
 import team.idealstate.glass.context.util.Plugins
 import team.idealstate.glass.data.dependency.ScopedDependencyInformation
 import team.idealstate.glass.plugin.java.data.JavaApplication
 import team.idealstate.glass.plugin.java.data.JavaReleaseProperty
 import team.idealstate.glass.plugin.java.task.CopyrightTask
 import team.idealstate.glass.plugin.java.task.MavenPomTask
-import team.idealstate.glass.plugin.java.task.MavenPomTask.Companion.ROOT_NAME
 import team.idealstate.glass.plugin.java.task.RelocateTask
 import team.idealstate.glass.plugin.java.task.SourcesTask
 import team.idealstate.glass.plugin.java.task.UnzipInternalDependenciesTask
-import kotlin.text.get
+import team.idealstate.glass.plugin.java.task.UnzipShadowDependenciesTask
 
 open class GlassJavaExtension(
     private val project: Project,
@@ -49,6 +49,7 @@ open class GlassJavaExtension(
         const val FEATURE_WITH_COPYRIGHT = "withCopyright"
         const val FEATURE_WITH_DEPENDENCIES_INFORMATION = "withDependenciesInformation"
         const val FEATURE_WITH_INTERNAL = "withInternal"
+        const val FEATURE_WITH_SHADOW = "withShadow"
         const val FEATURE_WITH_SOURCES_JAR = "withSourcesJar"
         const val FEATURE_WITH_JAVADOC_JAR = "withJavadocJar"
         const val FEATURE_WITH_JUNIT_TEST = "withJUnitTest"
@@ -194,7 +195,7 @@ open class GlassJavaExtension(
             }
             return
         }
-        mustBefore(FEATURE_WITH_INTERNAL, FEATURE_MULTI_RELEASE)
+        mustBefore(FEATURE_WITH_INTERNAL, FEATURE_WITH_SHADOW, FEATURE_MULTI_RELEASE)
         module?.let {
             this.module.set(it)
         }
@@ -232,6 +233,44 @@ open class GlassJavaExtension(
                     } else {
                         details.path = relocateResult.path
                     }
+                }
+            }
+        }
+    }
+
+    fun withShadow() {
+        if (enable(FEATURE_WITH_SHADOW)) return
+        mustBefore(FEATURE_WITH_SHADOW, FEATURE_MULTI_RELEASE)
+        val sourceSets = Extensions.sourceSets(project)
+        val mainSourceSet = sourceSets.named(SourceSet.MAIN_SOURCE_SET_NAME).get()
+        val testSourceSet = sourceSets.named(SourceSet.TEST_SOURCE_SET_NAME).get()
+        val configurations = project.configurations
+        val shadow = configurations.named(ConfigureJava.CONFIGURATION_SHADOW_NAME).get()
+        for (sourceSet in arrayOf(mainSourceSet, testSourceSet)) {
+            sourceSet.compileClasspath += shadow
+            sourceSet.runtimeClasspath += shadow
+        }
+        val unzipShadowDependenciesTask = UnzipShadowDependenciesTask.register(project)
+        project.tasks.named(ConfigureJava.JAR_TASK_NAME, Jar::class.java) {
+            it.dependsOn(unzipShadowDependenciesTask)
+            it.from(unzipShadowDependenciesTask) { copy ->
+                copy.includeEmptyDirs = false
+                copy.eachFile { each ->
+                    var path = PathUtils.normalize(each.path)
+                    if (path[0] == PathUtils.NORMAL_DELIMITER) {
+                        path = path.substring(1)
+                    }
+                    var i = path.indexOf(PathUtils.NORMAL_DELIMITER)
+                    if (i < 0 || i == path.length - 1) {
+                        each.exclude()
+                        return@eachFile
+                    }
+                    i = path.indexOf(PathUtils.NORMAL_DELIMITER, i + 1)
+                    if (i < 0) {
+                        each.exclude()
+                        return@eachFile
+                    }
+                    each.path = path.substring(i + 1)
                 }
             }
         }

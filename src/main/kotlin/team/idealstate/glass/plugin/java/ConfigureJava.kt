@@ -82,9 +82,9 @@ open class ConfigureJava : Configure() {
 //        implementation.extendsFrom(internal)
 //        project.tasks.named("compileJava", JavaCompile::class.java) {}
         project.tasks.withType(JavaCompile::class.java) {
+            it.options.compilerArgs.add("-parameters")
             it.doFirst { _ ->
                 it.options.encoding = Charset.defaultCharset().name()
-                it.options.compilerArgs + "-parameters"
             }
         }
     }

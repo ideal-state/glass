@@ -116,7 +116,7 @@ class MethodRelocator(
         opcode: Int,
         type: String?,
     ) {
-        super.visitTypeInsn(opcode, type)
+        super.visitTypeInsn(opcode, relocate(type))
     }
 
     override fun visitFieldInsn(

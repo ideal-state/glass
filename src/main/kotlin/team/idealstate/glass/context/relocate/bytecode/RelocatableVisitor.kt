@@ -38,6 +38,9 @@ interface RelocatableVisitor {
         val internalName = source.internalName
         val relocate = relocate(internalName)
         if (internalName != relocate && relocate != null) {
+            if (relocate.contains("(") && relocate.contains(")")) {
+                return Type.getMethodType(relocate)
+            }
             return Type.getObjectType(relocate)
         }
         return source

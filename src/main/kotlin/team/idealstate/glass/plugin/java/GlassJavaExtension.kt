@@ -65,17 +65,17 @@ open class GlassJavaExtension(
         @JvmStatic
         fun dependenciesInformation(project: Project): List<ScopedDependencyInformation> {
             val dependenciesInformation = linkedMapOf<String, ScopedDependencyInformation>()
-            var scope = "compile"
-            val compileClasspath = project.configurations.getByName("runtimeClasspath")
-            for (information in compileClasspath.dependenciesInformation) {
+            var scope = "runtime"
+            val runtimeClasspath = project.configurations.getByName("runtimeClasspath")
+            for (information in runtimeClasspath.dependenciesInformation) {
                 dependenciesInformation[information.id] =
                     ScopedDependencyInformation(information.group, information.name, information.version, scope)
             }
-            scope = "provided"
-            val runtimeClasspath = project.configurations.getByName("compileClasspath")
-            for (information in runtimeClasspath.dependenciesInformation) {
+            scope = "compile"
+            val compileClasspath = project.configurations.getByName("compileClasspath")
+            for (information in compileClasspath.dependenciesInformation) {
                 val id = information.id
-                if (!dependenciesInformation.containsKey(id)) {
+                if (dependenciesInformation.containsKey(id)) {
                     dependenciesInformation[information.id] =
                         ScopedDependencyInformation(information.group, information.name, information.version, scope)
                 }

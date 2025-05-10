@@ -23,6 +23,7 @@ import team.idealstate.glass.context.util.Extensions
 import team.idealstate.glass.context.util.Plugins
 import team.idealstate.glass.plugin.Configure
 import team.idealstate.glass.plugin.java.ConfigureJava
+import team.idealstate.glass.plugin.java.GlassJavaExtension
 
 open class ConfigurePublishing : Configure() {
     companion object {
@@ -44,26 +45,26 @@ open class ConfigurePublishing : Configure() {
                 it.artifact(tasks.named(ConfigureJava.JAVADOC_JAR_TASK_NAME, Jar::class.java))
 //                it.from(project.components.getByName("java"))
             }
-//            it.pom { pom ->
-//                pom.name.set(project.name)
-//                pom.withXml { xml ->
-//                    val xmlNode = xml.asNode()
-//                    removeChildren(xmlNode, "dependencies")
-//                    val dependencies = GlassJavaExtension.dependenciesInformation(project)
-//                    if (dependencies.isNotEmpty()) {
-//                        val dependenciesNode = xmlNode.appendNode("dependencies")
-//                        dependencies.forEach { information ->
-//                            val dependencyNode = dependenciesNode.appendNode("dependency")
-//                            dependencyNode.appendNode("groupId", information.group)
-//                            dependencyNode.appendNode("artifactId", information.name)
-//                            dependencyNode.appendNode("version", information.version)
-//                            if (information.scope != "") {
-//                                dependencyNode.appendNode("scope", information.scope)
-//                            }
-//                        }
-//                    }
-//                }
-//            }
+            it.pom { pom ->
+                pom.name.set(project.name)
+                pom.withXml { xml ->
+                    val xmlNode = xml.asNode()
+                    removeChildren(xmlNode, "dependencies")
+                    val dependencies = GlassJavaExtension.dependenciesInformation(project)
+                    if (dependencies.isNotEmpty()) {
+                        val dependenciesNode = xmlNode.appendNode("dependencies")
+                        dependencies.forEach { information ->
+                            val dependencyNode = dependenciesNode.appendNode("dependency")
+                            dependencyNode.appendNode("groupId", information.group)
+                            dependencyNode.appendNode("artifactId", information.name)
+                            dependencyNode.appendNode("version", information.version)
+                            if (information.scope != "") {
+                                dependencyNode.appendNode("scope", information.scope)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

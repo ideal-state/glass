@@ -25,11 +25,8 @@ open class SpotlessJava : Spotless() {
                 it.target("src/*/java/**/*.java")
                 it.endWithNewline()
                 it
-                    .googleJavaFormat()
-                    .aosp()
-                    .reflowLongStrings(true)
+                    .palantirJavaFormat()
                     .formatJavadoc(true)
-                it.formatAnnotations()
                 applyLicenseHeader(it)
             }
         }

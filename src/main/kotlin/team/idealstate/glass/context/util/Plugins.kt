@@ -25,6 +25,7 @@ object Plugins {
     fun glass(id: String): String = "$GLASS_GROUP.$id"
 
     const val java: String = "java"
+    const val java_library: String = "java-library"
 
     const val maven_publish: String = "maven-publish"
     const val publishing: String = "publishing"

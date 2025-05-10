@@ -59,7 +59,7 @@ open class ConfigureJava : Configure() {
     }
 
     init {
-        dependsOn(Plugins.java)
+        dependsOn(Plugins.java, Plugins.java_library)
     }
 
     override fun apply() {
@@ -82,6 +82,7 @@ open class ConfigureJava : Configure() {
 //        implementation.extendsFrom(internal)
 //        project.tasks.named("compileJava", JavaCompile::class.java) {}
         project.tasks.withType(JavaCompile::class.java) {
+            it.dependsOn("clean")
             it.options.compilerArgs.add("-parameters")
             it.doFirst { _ ->
                 it.options.encoding = Charset.defaultCharset().name()

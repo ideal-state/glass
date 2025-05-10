@@ -83,6 +83,11 @@ open class UnzipInternalDependenciesTask : ParallelCopy() {
                 val path = PathUtils.normalize("$group/$name/")
                 it.into(File(path)) { copy ->
                     copy.from(project.zipTree(artifactFile))
+                    copy.eachFile { each ->
+                        if (each.path.startsWith("META-INF/maven/")) {
+                            each.exclude()
+                        }
+                    }
                 }
             }
         }

@@ -24,7 +24,7 @@ import team.idealstate.glass.context.relocate.Relocator
 
 class RecordComponentRelocator(
     api: Int,
-    writer: RecordComponentVisitor,
+    writer: RecordComponentVisitor?,
     override val relocators: List<Relocator>,
 ) : RecordComponentVisitor(api, writer),
     RelocatableVisitor {

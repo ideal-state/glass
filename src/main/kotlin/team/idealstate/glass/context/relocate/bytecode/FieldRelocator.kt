@@ -24,7 +24,7 @@ import team.idealstate.glass.context.relocate.Relocator
 
 class FieldRelocator(
     api: Int,
-    writer: FieldVisitor,
+    writer: FieldVisitor?,
     override val relocators: List<Relocator>,
 ) : FieldVisitor(api, writer),
     RelocatableVisitor {

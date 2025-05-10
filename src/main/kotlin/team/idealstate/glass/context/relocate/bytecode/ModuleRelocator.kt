@@ -21,7 +21,7 @@ import team.idealstate.glass.context.relocate.Relocator
 
 class ModuleRelocator(
     api: Int,
-    writer: ModuleVisitor,
+    writer: ModuleVisitor?,
     override val relocators: List<Relocator>,
 ) : ModuleVisitor(api, writer),
     RelocatableVisitor {

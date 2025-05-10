@@ -96,7 +96,10 @@ class ClassRelocator(
     override fun visitAnnotation(
         descriptor: String?,
         visible: Boolean,
-    ): AnnotationVisitor = super.visitAnnotation(relocate(descriptor), visible)
+    ): AnnotationVisitor {
+        val annotationVisitor = super.visitAnnotation(relocate(descriptor), visible)
+        return AnnotationRelocator(api, annotationVisitor, relocators)
+    }
 
     override fun visitTypeAnnotation(
         typeRef: Int,

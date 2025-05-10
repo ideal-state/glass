@@ -17,7 +17,6 @@
 package team.idealstate.glass.context.relocate.bytecode
 
 import org.objectweb.asm.AnnotationVisitor
-import org.objectweb.asm.Type
 import team.idealstate.glass.context.relocate.Relocator
 
 class AnnotationRelocator(
@@ -26,7 +25,7 @@ class AnnotationRelocator(
     override val relocators: List<Relocator>,
 ) : AnnotationVisitor(api, writer),
     RelocatableVisitor {
-        override fun visit(
+    override fun visit(
         name: String?,
         value: Any?,
     ) {

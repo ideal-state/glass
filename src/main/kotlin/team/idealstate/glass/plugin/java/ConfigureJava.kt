@@ -101,6 +101,9 @@ open class ConfigureJava : Configure() {
                     application.agent.orNull?.also { agent ->
                         it.manifest.attributes(agent.toManifestAttributes())
                     }
+                    application.sugar.orNull?.also { sugar ->
+                        it.manifest.attributes(sugar.toManifestAttributes())
+                    }
                 }
             }
         }

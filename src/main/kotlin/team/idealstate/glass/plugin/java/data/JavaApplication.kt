@@ -40,4 +40,20 @@ class JavaApplication(
             this.agent.set(agentManifest)
         }
     }
+
+    val sugar: Property<Sugar> = project.objects.property(Sugar::class.java)
+
+    fun sugar(action: Action<in Sugar>) {
+        var exists = false
+        var sugar = this.sugar.orNull
+        if (sugar != null) {
+            exists = true
+        } else {
+            sugar = Sugar(project)
+        }
+        action.execute(sugar)
+        if (!exists) {
+            this.sugar.set(sugar)
+        }
+    }
 }

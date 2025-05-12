@@ -22,15 +22,15 @@ import org.gradle.api.provider.Property
 class Sugar(
     project: Project,
 ) {
-    val release: Property<String> =
+    val into: Property<String> =
         project.objects.property(String::class.java).apply {
             set("")
         }
 
     fun toManifestAttributes(): Map<String, *> {
         val attributes = linkedMapOf<String, Any>()
-        if (release.isPresent || release.orNull.isNullOrBlank()) {
-            attributes["sugar-release"] = release.get()
+        if (into.isPresent || into.orNull.isNullOrBlank()) {
+            attributes["sugar-into"] = into.get()
         }
         if (attributes.isNotEmpty()) {
             attributes.putFirst("sugar", true)

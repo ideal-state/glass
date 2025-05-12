@@ -47,8 +47,8 @@ open class ConfigureJava : Configure() {
                 it as Jar
                 it.manifest.attributes(
                     mapOf(
-                        "group" to it.project.group,
-                        "name" to it.project.name,
+                        "groupId" to it.project.group,
+                        "artifactId" to it.project.name,
                         "version" to it.project.version,
                         "timestamp" to ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME),
                     ),

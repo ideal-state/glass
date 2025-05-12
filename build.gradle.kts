@@ -60,7 +60,7 @@ gradlePlugin {
             id = "team.idealstate.glass"
             implementationClass = "team.idealstate.glass.Glass"
             displayName = "Glass"
-            description = ""
+            description = "Configure Java projects simply and quickly."
             tags.set(listOf("java", "repository", "configuration", "publish", "fatjar", "statistics"))
         }
     }
@@ -191,6 +191,7 @@ jreleaser {
                     snapshotSupported.set(true)
                     closeRepository.set(true)
                     releaseRepository.set(true)
+                    verifyPom.set(false)
                     stagingRepository("build/repository")
                 }
             }

@@ -22,6 +22,11 @@ import org.gradle.api.provider.Property
 class Sugar(
     project: Project,
 ) {
+    val enabled: Property<Boolean> =
+        project.objects.property(Boolean::class.java).apply {
+            set(false)
+        }
+
     val into: Property<String> =
         project.objects.property(String::class.java).apply {
             set("")
@@ -29,10 +34,14 @@ class Sugar(
 
     fun toManifestAttributes(): Map<String, *> {
         val attributes = linkedMapOf<String, Any>()
+        if (enabled.isPresent) {
+            attributes.putFirst("sugar", enabled.get())
+        }
         if (into.isPresent || into.orNull.isNullOrBlank()) {
             attributes["sugar-into"] = into.get()
         }
-        if (attributes.isNotEmpty()) {
+        if (attributes.isNotEmpty() && !attributes.contains("sugar")) {
+            enabled.set(true)
             attributes.putFirst("sugar", true)
         }
         return attributes

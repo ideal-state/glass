@@ -53,7 +53,7 @@ open class ConfigureJava : Configure() {
                         "timestamp" to ZonedDateTime.now().format(DateTimeFormatter.ISO_ZONED_DATE_TIME),
                     ),
                 )
-                it.duplicatesStrategy = DuplicatesStrategy.WARN
+                it.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             }
         }
     }

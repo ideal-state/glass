@@ -115,7 +115,6 @@ open class GlassJavaExtension(
     val application: Property<JavaApplication> = project.objects.property(JavaApplication::class.java)
 
     fun application(action: Action<in JavaApplication>) {
-        if (enable(FEATURE_APPLICATION)) return
         var exists = false
         var application = this.application.orNull
         if (application != null) {

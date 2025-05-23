@@ -92,19 +92,22 @@ open class ConfigureJava : Configure() {
     private fun configureJarTask() {
         project.tasks.named("jar", Jar::class.java) {
             configureJarTask(it)
-            it.doFirst { _ ->
+            it.doFirst { jar ->
+                jar as Jar
                 val glass = GlassJavaExtension.of(project)
+                val attributes = linkedMapOf<String, Any?>()
                 glass.application.orNull?.also { application ->
                     application.main.orNull?.also { main ->
-                        it.manifest.attributes(mapOf("Main-Class" to main))
+                        attributes.put("Main-Class", main)
                     }
                     application.agent.orNull?.also { agent ->
-                        it.manifest.attributes(agent.toManifestAttributes())
+                        attributes.putAll(agent.toManifestAttributes())
                     }
                     application.sugar.orNull?.also { sugar ->
-                        it.manifest.attributes(sugar.toManifestAttributes())
+                        attributes.putAll(sugar.toManifestAttributes())
                     }
                 }
+                jar.manifest.attributes(attributes)
             }
         }
     }

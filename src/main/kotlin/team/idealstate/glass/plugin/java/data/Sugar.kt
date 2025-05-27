@@ -27,24 +27,10 @@ class Sugar(
             set(false)
         }
 
-    val into: Property<String> =
-        project.objects.property(String::class.java)
-
     fun toManifestAttributes(): Map<String, *> {
         val attributes = linkedMapOf<String, Any>()
         if (enabled.isPresent) {
             attributes.putFirst("sugar", enabled.get())
-        }
-        if (into.isPresent) {
-            into.get().also {
-                if (it.isNotBlank()) {
-                    attributes["sugar-into"] = it
-                }
-            }
-        }
-        if (attributes.isNotEmpty() && !attributes.contains("sugar")) {
-            enabled.set(true)
-            attributes.putFirst("sugar", true)
         }
         return attributes
     }

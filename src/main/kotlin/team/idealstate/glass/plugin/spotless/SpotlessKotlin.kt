@@ -24,7 +24,17 @@ open class SpotlessKotlin : Spotless() {
             kotlin {
                 it.target("src/*/kotlin/**/*.kt", "src/*/kotlin/**/*.kts")
                 it.endWithNewline()
-                it.ktlint()
+                it.ktlint().apply {
+                    var config = project.file(".editorconfig")
+                    if (config.exists()) {
+                        setEditorConfigPath(config)
+                    } else {
+                        config = project.rootProject.file(".editorconfig")
+                        if (config.exists()) {
+                            setEditorConfigPath(config)
+                        }
+                    }
+                }
                 applyLicenseHeader(it)
             }
         }

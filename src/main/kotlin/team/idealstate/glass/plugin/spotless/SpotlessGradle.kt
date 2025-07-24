@@ -30,7 +30,17 @@ open class SpotlessGradle : Spotless() {
             kotlinGradle {
                 it.target("**/*.gradle.kts")
                 it.endWithNewline()
-                it.ktlint()
+                it.ktlint().apply {
+                    var config = project.file(".editorconfig")
+                    if (config.exists()) {
+                        setEditorConfigPath(config)
+                    } else {
+                        config = project.rootProject.file(".editorconfig")
+                        if (config.exists()) {
+                            setEditorConfigPath(config)
+                        }
+                    }
+                }
             }
         }
     }

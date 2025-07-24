@@ -55,8 +55,7 @@ private fun Settings.findBuildScripts(
 
 private val excludes =
     setOf(
-        ":build:spotless-clean:spotlessGroovyGradle",
-        ":build:spotless-clean:spotlessKotlinGradle",
+        ":build:spotless-",
     )
 
 fun Settings.multiModule(root: String = "") {
@@ -87,13 +86,13 @@ fun Settings.multiModule(root: String = "") {
                 return@forEach
             }
         }
-        println(">> including $moduleId ....")
         val foundProject = findProject(it.parentFile)
         val projectName =
             "${rootProject.name}${moduleId.substring(rootPath.length)}".replace(
                 MODULE_ID_DELIMITER,
                 MODULE_NAME_DELIMITER,
             )
+        println(">> including $moduleId ($projectName)...")
         if (foundProject != null) {
             if (foundProject.name != projectName) {
                 throw IllegalStateException("Module $moduleId already exists.")
@@ -103,8 +102,7 @@ fun Settings.multiModule(root: String = "") {
         }
         val project = project(moduleId)
         project.name = projectName
-        println(">> included $moduleId ($projectName)")
         count++
     }
-    println(">> $count modules included.\n")
+    println("> $count modules included.\n")
 }

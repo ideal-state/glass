@@ -21,23 +21,17 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
-import team.idealstate.glass.context.util.Plugins
 
-fun PluginDependenciesSpec.glass(id: String): PluginDependencySpec = id(Plugins.glass(id))
+val PluginDependenciesSpec.glass: PluginDependencySpec
+    get() = id("team.idealstate.glass")
 
-fun ObjectConfigurationAction.glass(id: String): ObjectConfigurationAction = plugin(Plugins.glass(id))
+val ObjectConfigurationAction.glass: ObjectConfigurationAction
+    get() = plugin("team.idealstate.glass")
 
-val PluginDependenciesSpec.JAVA: String
-    get() = Plugins.java
-val ObjectConfigurationAction.JAVA: String
-    get() = Plugins.java
+fun PluginDependenciesSpec.glass(id: String): PluginDependencySpec = id("team.idealstate.glass.$id")
 
-val PluginDependenciesSpec.PUBLISHING: String
-    get() = Plugins.publishing
-val ObjectConfigurationAction.PUBLISHING: String
-    get() = Plugins.publishing
+fun ObjectConfigurationAction.glass(id: String): ObjectConfigurationAction = plugin("team.idealstate.glass.$id")
 
-val PluginDependenciesSpec.SIGNING: String
-    get() = Plugins.signing
-val ObjectConfigurationAction.SIGNING: String
-    get() = Plugins.signing
+fun PluginDependenciesSpec.spotless(id: String): PluginDependencySpec = id("team.idealstate.glass.com.diffplug.spotless.$id")
+
+fun ObjectConfigurationAction.spotless(id: String): ObjectConfigurationAction = plugin("team.idealstate.glass.com.diffplug.spotless.$id")

@@ -4,7 +4,7 @@ import org.jreleaser.model.Active
 plugins {
     id("java-gradle-plugin")
     id("signing")
-    alias(libs.plugins.kotlin.jvm)
+    `embedded-kotlin`
     alias(libs.plugins.dokka)
     alias(libs.plugins.spotless)
     alias(libs.plugins.plugin.publish)
@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "team.idealstate.glass"
-version = "0.1.0-SNAPSHOT"
+version = "0.2.0-SNAPSHOT"
 
 configurations {
     api {
@@ -163,10 +163,7 @@ spotless {
 
 publishing {
     repositories {
-        maven {
-            name = "Project"
-            url = uri("file://${project.projectDir}/build/repository")
-        }
+        mavenLocal()
     }
 }
 

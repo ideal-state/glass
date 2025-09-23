@@ -22,46 +22,52 @@ import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
-import team.idealstate.glass.data.CredentialsProvider
-import team.idealstate.glass.data.repository.EnvironmentsMavenArtifactRepositoryCredentialsProvider
-import team.idealstate.glass.data.repository.PropertiesMavenArtifactRepositoryCredentialsProvider
+import java.io.File
 import java.net.URI
-
-fun MavenArtifactRepository.environments(): CredentialsProvider<out MavenArtifactRepository> =
-    EnvironmentsMavenArtifactRepositoryCredentialsProvider(this)
-
-fun MavenArtifactRepository.properties(project: Project): CredentialsProvider<out MavenArtifactRepository> =
-    PropertiesMavenArtifactRepositoryCredentialsProvider(project, this)
+import java.util.Locale
 
 fun RepositoryHandler.project(project: Project): MavenArtifactRepository =
     maven {
-        it.name = "Project"
-        it.url = project.uri("file://${project.projectDir}/build/repository")
+        it.name = "project"
+        it.url = File(project.projectDir, "build/repository").toURI()
     }
-
-val RepositoryHandler.SNAPSHOT: String
-    get() = "SNAPSHOT"
 
 fun RepositoryHandler.aliyun(): MavenArtifactRepository =
     maven {
-        it.name = "Aliyun"
+        it.name = "aliyun"
         it.url = URI.create("https://maven.aliyun.com/repository/public/")
     }
 
 fun RepositoryHandler.sonatype(
-    type: String = "",
+    snapshot: Boolean = false,
     action: Action<in MavenArtifactRepository> = Action { },
 ): MavenArtifactRepository {
     val maven =
         maven {
-            if (SNAPSHOT.equals(type, true)) {
-                it.name = "Sonatype-Snapshots"
+            if (snapshot) {
+                it.name = "sonatype-snapshots"
                 it.url = URI.create("https://central.sonatype.com/repository/maven-snapshots/")
             } else {
-                it.name = "Sonatype"
+                it.name = "sonatype"
                 it.url = URI.create("https://repo1.maven.org/maven2/")
             }
         }
     action.execute(maven)
     return maven
+}
+
+fun MavenArtifactRepository.login() {
+    credentials {
+        val id = name.replace(Regex("[ -.]"), "_").uppercase(Locale.ENGLISH)
+        it.username = System.getenv("GLASS_PUBLISHING_${id}_KEY")
+        it.password = System.getenv("GLASS_PUBLISHING_${id}_SECRET")
+    }
+}
+
+fun MavenArtifactRepository.login(project: Project) {
+    credentials {
+        val id = name.replace(Regex("[ -_]"), ".").lowercase(Locale.ENGLISH)
+        it.username = project.property("glass.publishing.$id.key") as String
+        it.password = project.property("glass.publishing.$id.secret") as String
+    }
 }

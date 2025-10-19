@@ -19,7 +19,6 @@ package team.idealstate.glass.plugin.project.spotless
 import com.diffplug.gradle.spotless.SqlExtension
 
 open class SqlSpotless : Spotless<SqlExtension>("sql", SqlExtension::class.java) {
-
     override fun apply(format: SqlExtension) {
         format.target("src/*/resources/**/*.sql")
         format.dbeaver()

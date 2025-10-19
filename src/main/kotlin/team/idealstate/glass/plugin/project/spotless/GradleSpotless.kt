@@ -17,10 +17,8 @@
 package team.idealstate.glass.plugin.project.spotless
 
 import com.diffplug.gradle.spotless.KotlinGradleExtension
-import team.idealstate.glass.plugin.project.ProjectPlugin
 
-open class GradleSpotless: Spotless<KotlinGradleExtension>("gradle",  KotlinGradleExtension::class.java) {
-
+open class GradleSpotless : Spotless<KotlinGradleExtension>("gradle", KotlinGradleExtension::class.java) {
     override fun apply(format: KotlinGradleExtension) {
         format.target("**/*.gradle.kts")
         format.ktlint().apply {

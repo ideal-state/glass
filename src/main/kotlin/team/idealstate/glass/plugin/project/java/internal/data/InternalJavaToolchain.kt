@@ -1,0 +1,75 @@
+/*
+ *    Copyright 2024 ideal-state
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+package team.idealstate.glass.plugin.project.java.internal.data
+
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Provider
+import org.gradle.jvm.toolchain.JavaCompiler
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaLauncher
+import org.gradle.jvm.toolchain.JavaToolchainService
+import org.gradle.jvm.toolchain.JavadocTool
+import org.gradle.jvm.toolchain.JvmImplementation
+import org.gradle.jvm.toolchain.JvmVendorSpec
+import team.idealstate.glass.plugin.project.java.data.JavaToolchain
+
+internal abstract class InternalJavaToolchain(
+    objects: ObjectFactory,
+) : JavaToolchain {
+    private val toolchainVersionProperty = objects.property(Int::class.java).apply { finalizeValueOnRead() }
+    private val toolchainVendorProperty = objects.property(JvmVendorSpec::class.java).apply { finalizeValueOnRead() }
+    private val toolchainImplementationProperty = objects.property(JvmImplementation::class.java).apply { finalizeValueOnRead() }
+
+    override fun toolchain(
+        version: Int,
+        vendor: JvmVendorSpec,
+        implementation: JvmImplementation,
+    ) {
+        toolchainVersionProperty.set(version)
+        toolchainVendorProperty.set(vendor)
+        toolchainImplementationProperty.set(implementation)
+    }
+
+    protected abstract val defaultToolchainVersion: Int
+    override val toolchainVersion
+        get() = toolchainVersionProperty.orNull ?: defaultToolchainVersion
+    override val toolchainVendor
+        get() = toolchainVendorProperty.orNull ?: JavaToolchain.DEFAULT_TOOLCHAIN_VENDOR
+    override val toolchainImplementation
+        get() = toolchainImplementationProperty.orNull ?: JavaToolchain.DEFAULT_TOOLCHAIN_IMPLEMENTATION
+
+    override fun launcherFrom(toolchains: JavaToolchainService): Provider<JavaLauncher> =
+        toolchains.launcherFor {
+            it.languageVersion.set(JavaLanguageVersion.of(toolchainVersion))
+            it.vendor.set(toolchainVendor)
+            it.implementation.set(toolchainImplementation)
+        }
+
+    override fun compilerFrom(toolchains: JavaToolchainService): Provider<JavaCompiler> =
+        toolchains.compilerFor {
+            it.languageVersion.set(JavaLanguageVersion.of(toolchainVersion))
+            it.vendor.set(toolchainVendor)
+            it.implementation.set(toolchainImplementation)
+        }
+
+    override fun javadocToolFrom(toolchains: JavaToolchainService): Provider<JavadocTool> =
+        toolchains.javadocToolFor {
+            it.languageVersion.set(JavaLanguageVersion.of(toolchainVersion))
+            it.vendor.set(toolchainVendor)
+            it.implementation.set(toolchainImplementation)
+        }
+}

@@ -18,7 +18,7 @@ package team.idealstate.glass.plugin.project.spotless
 
 import com.diffplug.gradle.spotless.JsonExtension
 
-open class JsonSpotless : Spotless<JsonExtension>(  "json", JsonExtension::class.java) {
+open class JsonSpotless : Spotless<JsonExtension>("json", JsonExtension::class.java) {
     override fun apply(format: JsonExtension) {
         format.target("src/*/resources/**/*.json")
         format.jackson()

@@ -21,8 +21,10 @@ import com.diffplug.gradle.spotless.HasBuiltinDelimiterForLicense
 import com.diffplug.gradle.spotless.SpotlessExtension
 import team.idealstate.glass.plugin.project.ProjectPlugin
 
-abstract class Spotless<T: FormatExtension>(private val name: String, private val type: Class<T>) : ProjectPlugin("com.diffplug.spotless.$name") {
-
+abstract class Spotless<T : FormatExtension>(
+    private val name: String,
+    private val type: Class<T>,
+) : ProjectPlugin("com.diffplug.spotless.$name") {
     init {
         dependsOn("com.diffplug.spotless")
     }

@@ -22,39 +22,116 @@ import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
-import java.io.File
 import java.net.URI
 import java.util.Locale
 
-fun RepositoryHandler.project(project: Project): MavenArtifactRepository =
-    maven {
-        it.name = "project"
-        it.url = File(project.projectDir, "build/repository").toURI()
-    }
+val RepositoryHandler.PUBLIC
+    get() = "public"
 
-fun RepositoryHandler.aliyun(): MavenArtifactRepository =
-    maven {
-        it.name = "aliyun"
-        it.url = URI.create("https://maven.aliyun.com/repository/public/")
+val RepositoryHandler.RELEASES
+    get() = "releases"
+
+val RepositoryHandler.SNAPSHOTS
+    get() = "snapshots"
+
+fun RepositoryHandler.local(project: Project): MavenArtifactRepository {
+    val name = project.name
+    if (names.contains(name)) {
+        return named(name, MavenArtifactRepository::class.java).get()
     }
+    return maven {
+        it.name = name
+        it.url =
+            project.layout.buildDirectory
+                .dir("repository")
+                .get()
+                .asFile
+                .normalize()
+                .toURI()
+    }
+}
+
+private fun RepositoryHandler.remote(
+    name: String,
+    type: String,
+    urls: Map<String, String>,
+    action: Action<in MavenArtifactRepository>,
+): MavenArtifactRepository {
+    val actualName = "$name-$type"
+    if (names.contains(actualName)) {
+        return named(actualName, MavenArtifactRepository::class.java) {
+            action.execute(it)
+        }.get()
+    }
+    return maven {
+        it.url =
+            URI.create(
+                urls[type]
+                    ?: throw UnsupportedOperationException("Repository \"$name\" does not support type \"$type\"."),
+            )
+        action.execute(it)
+        it.name = actualName
+    }
+}
+
+fun RepositoryHandler.aliyun(
+    type: String = PUBLIC,
+    action: Action<in MavenArtifactRepository> = Action { },
+): MavenArtifactRepository =
+    remote(
+        "aliyun",
+        type,
+        mapOf(
+            PUBLIC to "https://maven.aliyun.com/repository/public/",
+            RELEASES to "https://maven.aliyun.com/repository/releases/",
+            SNAPSHOTS to "https://maven.aliyun.com/repository/snapshots/",
+        ),
+        action,
+    )
 
 fun RepositoryHandler.sonatype(
-    snapshot: Boolean = false,
+    type: String = PUBLIC,
     action: Action<in MavenArtifactRepository> = Action { },
-): MavenArtifactRepository {
-    val maven =
-        maven {
-            if (snapshot) {
-                it.name = "sonatype-snapshots"
-                it.url = URI.create("https://central.sonatype.com/repository/maven-snapshots/")
-            } else {
-                it.name = "sonatype"
-                it.url = URI.create("https://repo1.maven.org/maven2/")
-            }
-        }
-    action.execute(maven)
-    return maven
-}
+): MavenArtifactRepository =
+    remote(
+        "sonatype",
+        type,
+        mapOf(
+            PUBLIC to "https://repo1.maven.org/maven2/",
+            SNAPSHOTS to "https://central.sonatype.com/repository/maven-snapshots/",
+        ),
+        action,
+    )
+
+fun RepositoryHandler.spigotmc(
+    type: String = PUBLIC,
+    action: Action<in MavenArtifactRepository> = Action { },
+): MavenArtifactRepository =
+    remote(
+        "spigotmc",
+        type,
+        mapOf(
+            PUBLIC to "https://hub.spigotmc.org/nexus/repository/public/",
+            RELEASES to "https://hub.spigotmc.org/nexus/repository/releases/",
+            SNAPSHOTS to "https://hub.spigotmc.org/nexus/repository/snapshots/",
+        ),
+        action,
+    )
+
+fun RepositoryHandler.papermc(
+    type: String = PUBLIC,
+    action: Action<in MavenArtifactRepository> = Action { },
+): MavenArtifactRepository =
+    remote(
+        "papermc",
+        type,
+        mapOf(
+            PUBLIC to "https://artifactory.papermc.io/artifactory/universe/",
+            RELEASES to "https://artifactory.papermc.io/artifactory/releases/",
+            SNAPSHOTS to "https://artifactory.papermc.io/artifactory/snapshots/",
+        ),
+        action,
+    )
 
 fun MavenArtifactRepository.login() {
     credentials {

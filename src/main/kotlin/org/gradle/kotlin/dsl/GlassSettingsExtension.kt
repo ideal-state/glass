@@ -20,91 +20,80 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.api.initialization.Settings
 import java.io.File
+import java.nio.file.Paths
 
 private const val BUILD_SRC_DIR_NAME = "buildSrc"
-private const val BUILD_GROOVY_SCRIPT_NAME = "build.gradle"
 private const val BUILD_KOTLIN_SCRIPT_NAME = "build.gradle.kts"
-private const val MODULE_ID_DELIMITER = ':'
-private const val MODULE_ID_DELIMITER_STR = MODULE_ID_DELIMITER.toString()
-private const val MODULE_NAME_DELIMITER = '-'
+private const val MODULE_ID_DELIMITER_CHAR = ':'
+private const val MODULE_ID_DELIMITER = MODULE_ID_DELIMITER_CHAR.toString()
 private const val SPOTLESS_BUILD_MODULE_ID_PREFIX = ":build:spotless-"
 
-private fun Settings.findBuildScripts(
-    modulesDirectory: File,
-    deep: Boolean = true,
-): List<File> {
-    val moduleIds = mutableListOf<File>()
-    for (file in modulesDirectory.listFiles()!!) {
-        val filename = file.name
-        if (filename == BUILD_SRC_DIR_NAME) {
-            continue
-        }
-        if (file.isDirectory) {
-            if (deep) {
-                moduleIds.addAll(findBuildScripts(file))
-            }
-        } else if (filename == BUILD_GROOVY_SCRIPT_NAME || filename == BUILD_KOTLIN_SCRIPT_NAME) {
-            if (file.parentFile == rootProject.projectDir) {
-                continue
-            }
-            moduleIds.add(file)
-        }
-    }
-    return moduleIds
-}
-
-private fun normalizePath(vararg parts: String): String = parts.joinToString("/").replace('\\', '/').replace("//", "/")
-
 fun Settings.multiModule(
-    base: String = "",
+    base: String = MODULE_ID_DELIMITER,
     vararg excludes: String,
 ) {
-    val basePath = normalizePath(base.replace(MODULE_ID_DELIMITER, '/'))
+    val basePath = Paths.get(base.replace(MODULE_ID_DELIMITER_CHAR, File.separatorChar)).normalize().toString()
 
-    val modulesDirectory = File(rootProject.projectDir, basePath)
-    if (!modulesDirectory.exists()) {
-        throw IllegalStateException("Modules directory is not exists.")
+    val rootProjectDir = rootProject.projectDir
+    val buildSrcDir = File(rootProjectDir, BUILD_SRC_DIR_NAME)
+    val baseDir = File(rootProjectDir, basePath)
+    if (!baseDir.exists()) {
+        throw IllegalArgumentException("Base dir \"$baseDir\" is not exists.")
     }
-    if (!modulesDirectory.isDirectory) {
-        throw IllegalStateException("Modules directory file must be a directory.")
+    if (!baseDir.isDirectory) {
+        throw IllegalArgumentException("Base dir \"$baseDir\" must be a directory.")
     }
-    println("\n> Modules: \n> Base Dir: $modulesDirectory")
-    val buildScripts = findBuildScripts(modulesDirectory)
-    val prefixLength = rootProject.projectDir.absolutePath.length
-    var count = 0
-    buildScripts.forEach {
-        val moduleId =
-            normalizePath(it.parentFile.absolutePath)
-                .substring(prefixLength)
-                .replace('/', MODULE_ID_DELIMITER)
-        if (moduleId.isBlank() || moduleId == MODULE_ID_DELIMITER_STR) {
-            return@forEach
+    if (baseDir == buildSrcDir) {
+        throw IllegalArgumentException("Base dir \"$baseDir\" cannot be buildSrc.")
+    }
+    try {
+        baseDir.relativeTo(rootProjectDir)
+    } catch (e: IllegalArgumentException) {
+        throw IllegalArgumentException("Base dir \"$baseDir\" must be specified relative to \"$rootProjectDir\".", e)
+    }
+
+    println("\n> Modules: \n> Base Dir: \"$baseDir\"")
+
+    val buildScriptFiles = mutableListOf<File>()
+    for (file in baseDir.listFiles()) {
+        !file.isDirectory && continue
+        file == buildSrcDir && continue
+        for (item in file.listFiles()) {
+            item.isDirectory && continue
+            val name = item.name
+            if (name == BUILD_KOTLIN_SCRIPT_NAME) {
+                buildScriptFiles.add(item)
+            }
         }
+    }
+
+    var count = 0
+    for (buildScriptFile in buildScriptFiles) {
+        val projectDir = buildScriptFile.parentFile
+        val moduleId =
+            MODULE_ID_DELIMITER_CHAR +
+                projectDir
+                    .relativeTo(rootProjectDir)
+                    .toPath()
+                    .normalize()
+                    .toString()
+                    .replace(File.separatorChar, MODULE_ID_DELIMITER_CHAR)
+        val projectName =
+            projectDir
+                .relativeTo(baseDir)
+                .toPath()
+                .normalize()
+                .toString()
         if (moduleId.contains(SPOTLESS_BUILD_MODULE_ID_PREFIX)) {
-            return@forEach
+            continue
         }
         for (exclude in excludes) {
-            if (moduleId == exclude) {
-                return@forEach
-            }
+            moduleId == exclude && continue
         }
-        val foundProject = findProject(it.parentFile)
-        val projectName =
-            "${rootProject.name}${moduleId.substring(basePath.length)}".replace(
-                MODULE_ID_DELIMITER,
-                MODULE_NAME_DELIMITER,
-            )
-        println(">> including $moduleId ($projectName)...")
-        if (foundProject != null) {
-            if (foundProject.name != projectName) {
-                throw IllegalStateException("Module $moduleId already exists.")
-            }
-        } else {
-            include(moduleId)
-        }
-        val project = project(moduleId)
-        project.name = projectName
+        println(">> including \"$projectName\" ($moduleId)...")
+        include(moduleId)
         count++
     }
+
     println("> $count modules included.\n")
 }

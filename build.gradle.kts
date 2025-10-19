@@ -1,4 +1,6 @@
+import com.diffplug.gradle.spotless.BaseKotlinExtension
 import com.diffplug.gradle.spotless.HasBuiltinDelimiterForLicense
+import com.diffplug.spotless.LineEnding
 import org.jreleaser.model.Active
 
 plugins {
@@ -35,14 +37,6 @@ dependencies {
 
     implementation(libs.foojay.resolver)
     implementation(libs.spotless)
-//    implementation(libs.jreleaser)
-
-    testImplementation(platform(libs.junit.bom))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-}
-
-tasks.test {
-    useJUnitPlatform()
 }
 
 kotlin {
@@ -56,7 +50,7 @@ gradlePlugin {
     website.set("https://docs.ideal-state.team/glass/")
     vcsUrl.set("https://gitlab.com/ideal-state/glass")
     plugins {
-        create("Glass") {
+        register("Glass") {
             id = "team.idealstate.glass"
             implementationClass = "team.idealstate.glass.Glass"
             displayName = "Glass"
@@ -71,7 +65,7 @@ signing {
     sign(publishing.publications)
 }
 
-val copyrightRootName = "COPYRIGHT"
+val copyrightRootName = "copyright"
 val copyright by tasks.registering(Copy::class) {
     group = "documentation"
     val licenseFile = "LICENSE.txt"
@@ -127,9 +121,9 @@ tasks.logLinkDokkaGeneratePublicationHtml {
 
 val javadocJar by tasks.registering(Jar::class) {
     group = "build"
-    dependsOn(tasks.dokkaGenerate)
+//    dependsOn(tasks.dokkaGenerate)
     archiveClassifier.set("javadoc")
-    from("${dokkaGeneratedDir}html/")
+//    from("${dokkaGeneratedDir}html/")
 }
 
 tasks.assemble {
@@ -145,25 +139,48 @@ spotless {
         }
     }
 
+    fun applyKtlint(it: BaseKotlinExtension.KtlintConfig) {
+        var config = project.file(".editorconfig")
+        if (config.exists()) {
+            it.setEditorConfigPath(config)
+        } else {
+            config = project.rootProject.file(".editorconfig")
+            if (config.exists()) {
+                it.setEditorConfigPath(config)
+            }
+        }
+    }
+
     encoding(Charsets.UTF_8)
+    lineEndings = LineEnding.GIT_ATTRIBUTES_FAST_ALLSAME
 
     kotlinGradle {
         target("*.gradle.kts")
+        applyKtlint(ktlint())
         endWithNewline()
-        ktlint()
     }
 
     kotlin {
         target("src/*/kotlin/**/*.kt", "src/*/kotlin/**/*.kts")
-        endWithNewline()
-        ktlint()
         applyLicenseHeader(this)
+        applyKtlint(ktlint())
+        endWithNewline()
     }
 }
 
 publishing {
     repositories {
         mavenLocal()
+        maven {
+            name = project.name
+            url =
+                project.layout.buildDirectory
+                    .dir("repository")
+                    .get()
+                    .asFile
+                    .normalize()
+                    .toURI()
+        }
     }
 }
 
@@ -171,7 +188,7 @@ jreleaser {
     deploy {
         maven {
             mavenCentral {
-                create("release") {
+                register("release") {
                     active.set(Active.RELEASE)
                     url.set("https://central.sonatype.com/api/v1/publisher")
                     sign.set(false)
@@ -179,7 +196,7 @@ jreleaser {
                 }
             }
             nexus2 {
-                create("snapshot") {
+                register("snapshot") {
                     active.set(Active.SNAPSHOT)
                     url.set("https://central.sonatype.com/repository/maven-snapshots")
                     snapshotUrl.set("https://central.sonatype.com/repository/maven-snapshots")
@@ -198,7 +215,7 @@ jreleaser {
 
 val doDeploy by tasks.registering {
     dependsOn(tasks.test)
-    dependsOn(tasks.named("publishAllPublicationsToProjectRepository"))
+    dependsOn(tasks.named("publishAllPublicationsToGlassRepository"))
     finalizedBy(tasks.jreleaserDeploy)
 }
 

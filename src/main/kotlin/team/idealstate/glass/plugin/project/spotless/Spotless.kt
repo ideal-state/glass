@@ -19,7 +19,9 @@ package team.idealstate.glass.plugin.project.spotless
 import com.diffplug.gradle.spotless.FormatExtension
 import com.diffplug.gradle.spotless.HasBuiltinDelimiterForLicense
 import com.diffplug.gradle.spotless.SpotlessExtension
+import com.diffplug.spotless.LineEnding
 import team.idealstate.glass.plugin.project.ProjectPlugin
+import java.nio.charset.Charset
 
 abstract class Spotless<T : FormatExtension>(
     private val name: String,
@@ -38,6 +40,8 @@ abstract class Spotless<T : FormatExtension>(
     }
 
     private fun doApply(format: T) {
+        format.encoding(Charset.defaultCharset().name())
+        format.lineEndings = LineEnding.GIT_ATTRIBUTES_FAST_ALLSAME
         format.endWithNewline()
         if (format is HasBuiltinDelimiterForLicense) {
             val headerFile = project.rootProject.file("HEADER.txt")

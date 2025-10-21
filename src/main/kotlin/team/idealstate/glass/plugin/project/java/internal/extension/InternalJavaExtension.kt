@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.plugins.jvm.JvmTestSuite
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
@@ -377,7 +376,11 @@ internal open class InternalJavaExtension(
                 if (javadocJar != null) {
                     it.artifact(javadocJar)
                 }
-                it.artifact(jar)
+                if (shadowJar != null) {
+                    it.artifact(shadowJar)
+                } else {
+                    it.artifact(jar)
+                }
             }
         signingExtension.apply {
             useGpgCmd()
@@ -426,12 +429,6 @@ internal open class InternalJavaExtension(
             it.dependsOn(pom)
             it.from(pom) { copy ->
                 copy.into("META-INF/maven/${project.group}/${project.name}/")
-            }
-        }
-
-        if (shadowJar != null) {
-            project.tasks.withType(PublishToMavenRepository::class.java) {
-                it.mustRunAfter(shadowJar)
             }
         }
     }

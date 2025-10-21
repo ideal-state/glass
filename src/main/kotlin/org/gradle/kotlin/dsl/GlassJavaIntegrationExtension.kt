@@ -85,7 +85,7 @@ internal class InternalSugarIntegrationImplementation(
     ): List<String> = format(apiVersion, implementationVersion, annotationProcessors)
 }
 
-val JavaIntegration.HYPER: SugarIntegration.Implementation
+val JavaIntegration.NEXT: SugarIntegration.Implementation
     get() =
         InternalSugarIntegrationImplementation(
             "sugar-next",
@@ -95,11 +95,8 @@ val JavaIntegration.HYPER: SugarIntegration.Implementation
                 it.sonatype()
                 it.sonatype("snapshots")
             },
-            listOf(
-                $$"team.idealstate.sugar:sugar-next:${apiVersion}",
-                $$"team.idealstate.hyper:hyper:${apiVersion}-${implementationVersion}",
-            ),
-            listOf($$"team.idealstate.hyper:hyper:${apiVersion}-${implementationVersion}"),
+            listOf($$"team.idealstate.sugar:sugar-next:${apiVersion}-${implementationVersion}"),
+            listOf($$"team.idealstate.sugar:sugar-next:${apiVersion}-${implementationVersion}"),
             listOf($$"team.idealstate.sugar:sugar:${apiVersion}"),
         )
 
@@ -113,10 +110,7 @@ val JavaIntegration.MINECRAFT_NEXT: SugarIntegration.Implementation
                 it.sonatype()
                 it.sonatype("snapshots")
             },
-            listOf(
-                $$"team.idealstate.sugar:sugar-next:${apiVersion}",
-                $$"team.idealstate.minecraft:minecraft-next:${apiVersion}-${implementationVersion}",
-            ),
+            listOf($$"team.idealstate.minecraft:minecraft-next:${apiVersion}-${implementationVersion}"),
             listOf($$"team.idealstate.minecraft:minecraft-next:${apiVersion}-${implementationVersion}"),
             listOf($$"team.idealstate.sugar:sugar:${apiVersion}"),
         )

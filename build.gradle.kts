@@ -23,9 +23,9 @@ configurations {
 }
 
 repositories {
-    mavenLocal()
     gradlePluginPortal()
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
@@ -170,7 +170,6 @@ spotless {
 
 publishing {
     repositories {
-        mavenLocal()
         maven {
             name = project.name
             url =
@@ -181,6 +180,7 @@ publishing {
                     .normalize()
                     .toURI()
         }
+        mavenLocal()
     }
 }
 

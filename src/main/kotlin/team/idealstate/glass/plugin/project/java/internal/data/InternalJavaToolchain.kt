@@ -54,22 +54,22 @@ internal abstract class InternalJavaToolchain(
 
     override fun launcherFrom(toolchains: JavaToolchainService): Provider<JavaLauncher> =
         toolchains.launcherFor {
-            it.languageVersion.set(JavaLanguageVersion.of(toolchainVersion))
-            it.vendor.set(toolchainVendor)
-            it.implementation.set(toolchainImplementation)
+            languageVersion.set(JavaLanguageVersion.of(toolchainVersion))
+            vendor.set(toolchainVendor)
+            implementation.set(toolchainImplementation)
         }
 
     override fun compilerFrom(toolchains: JavaToolchainService): Provider<JavaCompiler> =
         toolchains.compilerFor {
-            it.languageVersion.set(JavaLanguageVersion.of(toolchainVersion))
-            it.vendor.set(toolchainVendor)
-            it.implementation.set(toolchainImplementation)
+            languageVersion.set(JavaLanguageVersion.of(toolchainVersion))
+            vendor.set(toolchainVendor)
+            implementation.set(toolchainImplementation)
         }
 
     override fun javadocToolFrom(toolchains: JavaToolchainService): Provider<JavadocTool> =
         toolchains.javadocToolFor {
-            it.languageVersion.set(JavaLanguageVersion.of(toolchainVersion))
-            it.vendor.set(toolchainVendor)
-            it.implementation.set(toolchainImplementation)
+            languageVersion.set(JavaLanguageVersion.of(toolchainVersion))
+            vendor.set(toolchainVendor)
+            implementation.set(toolchainImplementation)
         }
 }

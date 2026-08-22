@@ -36,22 +36,24 @@ import org.gradle.plugins.signing.SigningExtension
 import org.gradle.testing.base.TestingExtension
 import team.idealstate.glass.plugin.project.java.data.Java
 import team.idealstate.glass.plugin.project.java.data.JavaArtifacts
+import team.idealstate.glass.plugin.project.java.data.JavaDeploy
 import team.idealstate.glass.plugin.project.java.data.JavaIntegration
 import team.idealstate.glass.plugin.project.java.data.JavaPublication
 import team.idealstate.glass.plugin.project.java.data.JavaRelease
 import team.idealstate.glass.plugin.project.java.extension.JavaExtension
 import team.idealstate.glass.plugin.project.java.internal.data.InternalJava
 import team.idealstate.glass.plugin.project.java.internal.data.InternalJavaArtifacts
+import team.idealstate.glass.plugin.project.java.internal.data.InternalJavaDeploy
 import team.idealstate.glass.plugin.project.java.internal.data.InternalJavaIntegration
 import team.idealstate.glass.plugin.project.java.internal.data.InternalJavaPublication
 import team.idealstate.glass.plugin.project.java.internal.data.InternalJavaRelease
 import team.idealstate.glass.plugin.project.java.task.Pom
 import team.idealstate.glass.plugin.project.java.util.JavaUtils
 import team.idealstate.glass.plugin.project.java.util.dependency.ScopedDependencyInformation
+import team.idealstate.glass.util.GitUtil
 import team.idealstate.glass.util.TemplateFile
 import java.io.File
 import java.nio.charset.Charset
-import kotlin.collections.iterator
 
 internal open class InternalJavaExtension(
     private val project: Project,
@@ -103,6 +105,14 @@ internal open class InternalJavaExtension(
         publicationAction.set(action)
     }
 
+    private val deployAction = project.objects.property(Action::class.java).apply { finalizeValueOnRead() }
+
+    override fun deploy(
+        action: Action<JavaDeploy>,
+    ) {
+        deployAction.set(action)
+    }
+
     @Suppress("UNCHECKED_CAST", "UnstableApiUsage")
     override fun apply() {
         val encoding = Charset.defaultCharset().name()
@@ -135,6 +145,9 @@ internal open class InternalJavaExtension(
 
         val publicationAction = publicationAction.orNull as Action<JavaPublication>?
         val withPublication = publicationAction != null
+
+        val deployAction = deployAction.orNull as Action<JavaDeploy>?
+        val withDeploy = deployAction != null
 
         // --------------------------------------------------------------------------------------------------
 
@@ -200,6 +213,12 @@ internal open class InternalJavaExtension(
                 }
             registerPublication(project, jar, shadowJar, sourcesJar, javadocJar, publicationAction)
         }
+
+        if (withDeploy) {
+            val javaDeploy = InternalJavaDeploy(objects)
+            deployAction.execute(javaDeploy)
+            javaDeploy.apply(project)
+        }
     }
 
     private fun generateSources(
@@ -223,6 +242,7 @@ internal open class InternalJavaExtension(
                     "groupId" to project.group,
                     "artifactId" to project.name,
                     "version" to project.version,
+                    "version_code" to GitUtil.loadVersionCode(project),
                 ),
             )
     }
@@ -254,60 +274,60 @@ internal open class InternalJavaExtension(
             val sourceSet =
                 sourceSets.create("main$multiVersion") {
                     val output = finalLastMainSourceSet.output
-                    it.compileClasspath += output
-                    it.runtimeClasspath += output
-                    configurations.named(it.compileClasspathConfigurationName) { configuration ->
-                        configuration.extendsFrom(configurations.getByName(finalLastMainSourceSet.compileClasspathConfigurationName))
+                    compileClasspath += output
+                    runtimeClasspath += output
+                    configurations.named(compileClasspathConfigurationName) {
+                        extendsFrom(configurations.getByName(finalLastMainSourceSet.compileClasspathConfigurationName))
                     }
-                    configurations.named(it.runtimeClasspathConfigurationName) { configuration ->
-                        configuration.extendsFrom(configurations.getByName(finalLastMainSourceSet.runtimeClasspathConfigurationName))
+                    configurations.named(runtimeClasspathConfigurationName) {
+                        extendsFrom(configurations.getByName(finalLastMainSourceSet.runtimeClasspathConfigurationName))
                     }
-                    configurations.named(it.annotationProcessorConfigurationName) { configuration ->
-                        configuration.extendsFrom(configurations.getByName(finalLastMainSourceSet.annotationProcessorConfigurationName))
+                    configurations.named(annotationProcessorConfigurationName) {
+                        extendsFrom(configurations.getByName(finalLastMainSourceSet.annotationProcessorConfigurationName))
                     }
                 }
             val javaCompiler = javaRelease.compilerFrom(toolchains)
             project.tasks.named(sourceSet.compileJavaTaskName, JavaCompile::class.java) {
-                it.group = TASK_GROUP
-                it.shouldRunAfter(finalLastTestSuite)
-                it.javaCompiler.set(javaCompiler)
-                it.options.encoding = encoding
-                it.options.release.set(multiVersion)
-                it.options.compilerArgs.add("-parameters")
+                group = TASK_GROUP
+                shouldRunAfter(finalLastTestSuite)
+                this.javaCompiler.set(javaCompiler)
+                options.encoding = encoding
+                options.release.set(multiVersion)
+                options.compilerArgs.add("-parameters")
             }
             val testSuite =
-                suites.register("test$multiVersion", JvmTestSuite::class.java) { suite ->
-                    suite.sources {
+                suites.register("test$multiVersion", JvmTestSuite::class.java) {
+                    sources {
                         val output = sourceSet.output
-                        it.compileClasspath += output
-                        it.runtimeClasspath += output
+                        compileClasspath += output
+                        runtimeClasspath += output
                         val finalLastTestSourceSet = finalLastTestSuite.get().sources
-                        configurations.named(it.compileClasspathConfigurationName) { configuration ->
-                            configuration.extendsFrom(configurations.getByName(finalLastTestSourceSet.compileClasspathConfigurationName))
+                        configurations.named(compileClasspathConfigurationName) {
+                            extendsFrom(configurations.getByName(finalLastTestSourceSet.compileClasspathConfigurationName))
                         }
-                        configurations.named(it.runtimeClasspathConfigurationName) { configuration ->
-                            configuration.extendsFrom(configurations.getByName(finalLastTestSourceSet.runtimeClasspathConfigurationName))
+                        configurations.named(runtimeClasspathConfigurationName) {
+                            extendsFrom(configurations.getByName(finalLastTestSourceSet.runtimeClasspathConfigurationName))
                         }
-                        configurations.named(it.annotationProcessorConfigurationName) { configuration ->
-                            configuration.extendsFrom(configurations.getByName(finalLastTestSourceSet.annotationProcessorConfigurationName))
+                        configurations.named(annotationProcessorConfigurationName) {
+                            extendsFrom(configurations.getByName(finalLastTestSourceSet.annotationProcessorConfigurationName))
                         }
-                        project.tasks.named(it.compileJavaTaskName, JavaCompile::class.java) { task ->
-                            task.group = TASK_GROUP
-                            task.javaCompiler.set(javaCompiler)
-                            task.options.encoding = encoding
-                            task.options.release.set(multiVersion)
-                            task.options.compilerArgs.add("-parameters")
+                        project.tasks.named(compileJavaTaskName, JavaCompile::class.java) {
+                            group = TASK_GROUP
+                            this.javaCompiler.set(javaCompiler)
+                            options.encoding = encoding
+                            options.release.set(multiVersion)
+                            options.compilerArgs.add("-parameters")
                         }
                     }
-                    suite.targets.all { target ->
-                        target.testTask.configure {
-                            it.group = TASK_GROUP
-                            it.shouldRunAfter(finalLastTestSuite)
+                    targets.all {
+                        testTask.configure {
+                            group = TASK_GROUP
+                            shouldRunAfter(finalLastTestSuite)
                         }
                     }
                 }
-            check.configure { task ->
-                task.dependsOn(testSuite)
+            check.configure {
+                dependsOn(testSuite)
             }
             multiSourceSets[multiVersion] = sourceSet
             lastMainSourceSet = sourceSet
@@ -317,39 +337,38 @@ internal open class InternalJavaExtension(
         val javaCompiler = mainRelease.compilerFrom(toolchains)
         val mainVersion = mainRelease.version
         project.tasks.named(mainSourceSet.compileJavaTaskName, JavaCompile::class.java) {
-            it.group = TASK_GROUP
-            it.options.encoding = encoding
-            it.javaCompiler.set(javaCompiler)
+            group = TASK_GROUP
+            options.encoding = encoding
+            this.javaCompiler.set(javaCompiler)
             if (mainVersion >= JavaUtils.LEAST_MULTI_RELEASE_SUPPORTED_VERSION) {
-                it.options.release.set(mainVersion)
+                options.release.set(mainVersion)
             }
-            it.options.compilerArgs.add("-parameters")
+            options.compilerArgs.add("-parameters")
         }
         project.tasks.named(testSourceSet.compileJavaTaskName, JavaCompile::class.java) {
-            it.group = TASK_GROUP
-            it.options.encoding = encoding
-            it.javaCompiler.set(javaCompiler)
+            group = TASK_GROUP
+            options.encoding = encoding
+            this.javaCompiler.set(javaCompiler)
             if (mainVersion >= JavaUtils.LEAST_MULTI_RELEASE_SUPPORTED_VERSION) {
-                it.options.release.set(mainVersion)
+                options.release.set(mainVersion)
             }
-            it.options.compilerArgs.add("-parameters")
+            options.compilerArgs.add("-parameters")
         }
 
         lastMainSourceSet = mainSourceSet
-        for (entry in multiSourceSets) {
-            val sourceSet = entry.value
+        for ((_, sourceSet) in multiSourceSets) {
             val lastClasses = project.tasks.named(lastMainSourceSet.classesTaskName)
             project.tasks.named(sourceSet.compileJavaTaskName, JavaCompile::class.java) {
-                it.dependsOn(lastClasses)
+                dependsOn(lastClasses)
             }
 
             project.tasks.named(sourceSet.classesTaskName) {
-                it.group = TASK_GROUP
+                group = TASK_GROUP
             }
 
             project.tasks.named(sourceSet.processResourcesTaskName, ProcessResources::class.java) {
-                it.group = TASK_GROUP
-                it.includeEmptyDirs = false
+                group = TASK_GROUP
+                includeEmptyDirs = false
             }
         }
         return multiSourceSets
@@ -367,19 +386,19 @@ internal open class InternalJavaExtension(
         val signingExtension = project.extensions.getByType(SigningExtension::class.java)
         val publication =
             publishingExtension.publications.create("java", MavenPublication::class.java) {
-                it.groupId = project.group.toString()
-                it.artifactId = project.name
-                it.version = project.version.toString()
+                groupId = project.group.toString()
+                artifactId = project.name
+                version = project.version.toString()
                 if (sourcesJar != null) {
-                    it.artifact(sourcesJar)
+                    artifact(sourcesJar)
                 }
                 if (javadocJar != null) {
-                    it.artifact(javadocJar)
+                    artifact(javadocJar)
                 }
                 if (shadowJar != null) {
-                    it.artifact(shadowJar)
+                    artifact(shadowJar)
                 } else {
-                    it.artifact(jar)
+                    artifact(jar)
                 }
             }
         signingExtension.apply {
@@ -390,10 +409,10 @@ internal open class InternalJavaExtension(
         publicationAction.execute(javaPublication)
         javaPublication.apply(publication, signingExtension)
 
-        publication.pom { pom ->
-            pom.name.set(project.name)
-            pom.withXml { xml ->
-                val xmlNode = xml.asNode()
+        publication.pom {
+            name.set(project.name)
+            withXml {
+                val xmlNode = asNode()
                 val childrenIterator = xmlNode.children().iterator()
                 while (childrenIterator.hasNext()) {
                     val child = childrenIterator.next()
@@ -422,13 +441,13 @@ internal open class InternalJavaExtension(
         val pom =
             project.tasks.register("pom", Pom::class.java, publication.name).apply {
                 configure {
-                    it.group = TASK_GROUP
+                    group = TASK_GROUP
                 }
             }
         jar.configure {
-            it.dependsOn(pom)
-            it.from(pom) { copy ->
-                copy.into("META-INF/maven/${project.group}/${project.name}/")
+            dependsOn(pom)
+            from(pom) {
+                into("META-INF/maven/${project.group}/${project.name}/")
             }
         }
     }

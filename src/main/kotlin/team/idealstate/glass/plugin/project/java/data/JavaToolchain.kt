@@ -27,7 +27,7 @@ import org.gradle.jvm.toolchain.JvmVendorSpec
 interface JavaToolchain {
     companion object {
         @JvmStatic
-        val DEFAULT_TOOLCHAIN_VENDOR = JvmVendorSpec.GRAAL_VM
+        val DEFAULT_TOOLCHAIN_VENDOR = JvmVendorSpec.AZUL
 
         @JvmStatic
         val DEFAULT_TOOLCHAIN_IMPLEMENTATION = JvmImplementation.VENDOR_SPECIFIC

@@ -28,22 +28,22 @@ import java.util.Locale
 val RepositoryHandler.PUBLIC
     get() = "public"
 
-val RepositoryHandler.RELEASES
-    get() = "releases"
+val RepositoryHandler.RELEASE
+    get() = "release"
 
-val RepositoryHandler.SNAPSHOTS
-    get() = "snapshots"
+val RepositoryHandler.SNAPSHOT
+    get() = "snapshot"
 
-fun RepositoryHandler.local(project: Project): MavenArtifactRepository {
-    val name = project.name
+fun RepositoryHandler.staging(project: Project): MavenArtifactRepository {
+    val name = "staging"
     if (names.contains(name)) {
         return named(name, MavenArtifactRepository::class.java).get()
     }
     return maven {
-        it.name = name
-        it.url =
+        this.name = name
+        url =
             project.layout.buildDirectory
-                .dir("repository")
+                .dir(name)
                 .get()
                 .asFile
                 .normalize()
@@ -60,17 +60,17 @@ private fun RepositoryHandler.remote(
     val actualName = "$name-$type"
     if (names.contains(actualName)) {
         return named(actualName, MavenArtifactRepository::class.java) {
-            action.execute(it)
+            action.execute(this)
         }.get()
     }
     return maven {
-        it.url =
+        url =
             URI.create(
                 urls[type]
                     ?: throw UnsupportedOperationException("Repository \"$name\" does not support type \"$type\"."),
             )
-        action.execute(it)
-        it.name = actualName
+        action.execute(this)
+        this.name = actualName
     }
 }
 
@@ -83,8 +83,8 @@ fun RepositoryHandler.aliyun(
         type,
         mapOf(
             PUBLIC to "https://maven.aliyun.com/repository/public/",
-            RELEASES to "https://maven.aliyun.com/repository/releases/",
-            SNAPSHOTS to "https://maven.aliyun.com/repository/snapshots/",
+            RELEASE to "https://maven.aliyun.com/repository/releases/",
+            SNAPSHOT to "https://maven.aliyun.com/repository/snapshots/",
         ),
         action,
     )
@@ -98,7 +98,7 @@ fun RepositoryHandler.sonatype(
         type,
         mapOf(
             PUBLIC to "https://repo1.maven.org/maven2/",
-            SNAPSHOTS to "https://central.sonatype.com/repository/maven-snapshots/",
+            SNAPSHOT to "https://central.sonatype.com/repository/maven-snapshots/",
         ),
         action,
     )
@@ -112,8 +112,8 @@ fun RepositoryHandler.spigotmc(
         type,
         mapOf(
             PUBLIC to "https://hub.spigotmc.org/nexus/repository/public/",
-            RELEASES to "https://hub.spigotmc.org/nexus/repository/releases/",
-            SNAPSHOTS to "https://hub.spigotmc.org/nexus/repository/snapshots/",
+            RELEASE to "https://hub.spigotmc.org/nexus/repository/releases/",
+            SNAPSHOT to "https://hub.spigotmc.org/nexus/repository/snapshots/",
         ),
         action,
     )
@@ -127,8 +127,8 @@ fun RepositoryHandler.papermc(
         type,
         mapOf(
             PUBLIC to "https://artifactory.papermc.io/artifactory/universe/",
-            RELEASES to "https://artifactory.papermc.io/artifactory/releases/",
-            SNAPSHOTS to "https://artifactory.papermc.io/artifactory/snapshots/",
+            RELEASE to "https://artifactory.papermc.io/artifactory/releases/",
+            SNAPSHOT to "https://artifactory.papermc.io/artifactory/snapshots/",
         ),
         action,
     )
@@ -136,15 +136,15 @@ fun RepositoryHandler.papermc(
 fun MavenArtifactRepository.login() {
     credentials {
         val id = name.replace(Regex("[ -.]"), "_").uppercase(Locale.ENGLISH)
-        it.username = System.getenv("GLASS_PUBLISHING_${id}_KEY")
-        it.password = System.getenv("GLASS_PUBLISHING_${id}_SECRET")
+        username = System.getenv("GLASS_PUBLISHING_${id}_KEY")
+        password = System.getenv("GLASS_PUBLISHING_${id}_SECRET")
     }
 }
 
 fun MavenArtifactRepository.login(project: Project) {
     credentials {
         val id = name.replace(Regex("[ -_]"), ".").lowercase(Locale.ENGLISH)
-        it.username = project.property("glass.publishing.$id.key") as String
-        it.password = project.property("glass.publishing.$id.secret") as String
+        username = project.property("glass.publishing.$id.key") as String
+        password = project.property("glass.publishing.$id.secret") as String
     }
 }

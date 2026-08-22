@@ -21,6 +21,7 @@ import org.gradle.api.provider.Property
 import team.idealstate.glass.extension.ApplicableExtension
 import team.idealstate.glass.plugin.project.java.data.Java
 import team.idealstate.glass.plugin.project.java.data.JavaArtifacts
+import team.idealstate.glass.plugin.project.java.data.JavaDeploy
 import team.idealstate.glass.plugin.project.java.data.JavaIntegration
 import team.idealstate.glass.plugin.project.java.data.JavaPublication
 
@@ -41,5 +42,9 @@ interface JavaExtension : ApplicableExtension {
     fun publication(
         name: String = JavaPublication.DEFAULT_PUBLICATION_NAME,
         action: Action<JavaPublication> = Action { },
+    )
+
+    fun deploy(
+        action: Action<JavaDeploy>,
     )
 }

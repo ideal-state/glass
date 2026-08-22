@@ -92,8 +92,8 @@ val JavaIntegration.NEXT: SugarIntegration.Implementation
             "apiVersion",
             "implementationVersion",
             {
-                it.sonatype()
-                it.sonatype("snapshots")
+                sonatype()
+                sonatype("snapshots")
             },
             listOf($$"team.idealstate.sugar:sugar-next:${apiVersion}-${implementationVersion}"),
             listOf($$"team.idealstate.sugar:sugar-next:${apiVersion}-${implementationVersion}"),
@@ -107,8 +107,8 @@ val JavaIntegration.MINECRAFT_NEXT: SugarIntegration.Implementation
             "apiVersion",
             "implementationVersion",
             {
-                it.sonatype()
-                it.sonatype("snapshots")
+                sonatype()
+                sonatype("snapshots")
             },
             listOf($$"team.idealstate.minecraft:minecraft-next:${apiVersion}-${implementationVersion}"),
             listOf($$"team.idealstate.minecraft:minecraft-next:${apiVersion}-${implementationVersion}"),
@@ -160,7 +160,7 @@ val JavaIntegration.SPIGOT: MinecraftIntegration.Implementation
             "spigot",
             "minecraftVersion",
             "apiVersion",
-            { it.spigotmc() },
+            { spigotmc() },
             listOf($$"org.spigotmc:spigot-api:${minecraftVersion}-${apiVersion}"),
             listOf($$"org.spigotmc:spigot-api:${minecraftVersion}-${apiVersion}"),
             listOf("org.spigotmc:plugin-annotations:1.3-SNAPSHOT"),
@@ -172,7 +172,7 @@ val JavaIntegration.PAPER: MinecraftIntegration.Implementation
             "paper",
             "minecraftVersion",
             "apiVersion",
-            { it.papermc() },
+            { papermc() },
             listOf($$"io.papermc.paper:paper-api:${minecraftVersion}-${apiVersion}"),
             listOf($$"io.papermc.paper:paper-api:${minecraftVersion}-${apiVersion}"),
             listOf("org.spigotmc:plugin-annotations:1.3-SNAPSHOT"),

@@ -63,16 +63,16 @@ abstract class Copyright : DefaultTask() {
 
     @TaskAction
     fun copy() {
-        project.copy { root ->
-            root.into(destinationDirectory)
+        project.copy {
+            into(destinationDirectory)
             val rootProjectDir = project.rootProject.projectDir
             for (name in COPYRIGHT_DIR_NAMES) {
-                root.from(File(rootProjectDir, name)) { copy ->
-                    copy.into(name)
+                from(File(rootProjectDir, name)) {
+                    into(name)
                 }
             }
             for (name in COPYRIGHT_FILE_NAMES) {
-                root.from(File(rootProjectDir, name))
+                from(File(rootProjectDir, name))
             }
         }
     }

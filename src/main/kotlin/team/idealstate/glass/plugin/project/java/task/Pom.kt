@@ -57,11 +57,11 @@ abstract class Pom
 
         @TaskAction
         fun copy() {
-            project.copy { root ->
-                root.into(destinationDirectory)
-                root.from(generateMavenPom) { copy ->
-                    copy.include("pom-default.xml")
-                    copy.rename("pom-default.xml", "pom.xml")
+            project.copy {
+                into(destinationDirectory)
+                from(generateMavenPom) {
+                    include("pom-default.xml")
+                    rename("pom-default.xml", "pom.xml")
                 }
             }
             generatePomProperties()

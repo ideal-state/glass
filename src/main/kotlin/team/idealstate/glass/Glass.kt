@@ -22,6 +22,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.plugins.PluginManager
 import team.idealstate.glass.ProjectGlassExtension
 import team.idealstate.glass.extension.GlassExtension
+import team.idealstate.glass.util.GitUtil
 
 open class Glass : Plugin<Any> {
     override fun apply(target: Any) {
@@ -33,6 +34,10 @@ open class Glass : Plugin<Any> {
                 )
             }
             is Project -> {
+                GitUtil.loadVersionName(target, null)?.let {
+                    target.version = it
+                }
+
                 applyPlugins(
                     target.pluginManager,
                     "team.idealstate.glass.java",

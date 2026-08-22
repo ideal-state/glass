@@ -67,9 +67,9 @@ internal open class InternalJava(
         val javaPluginExtension = project.extensions.getByType(JavaPluginExtension::class.java)
         javaPluginExtension.apply {
             toolchain {
-                it.languageVersion.set(JavaLanguageVersion.of(toolchainVersion))
-                it.vendor.set(toolchainVendor)
-                it.implementation.set(toolchainImplementation)
+                languageVersion.set(JavaLanguageVersion.of(toolchainVersion))
+                vendor.set(toolchainVendor)
+                implementation.set(toolchainImplementation)
             }
         }
     }

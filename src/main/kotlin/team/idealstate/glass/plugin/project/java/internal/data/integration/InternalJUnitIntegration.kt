@@ -62,11 +62,11 @@ internal open class InternalJUnitIntegration(
         val junitAction = junitAction.orNull as Action<JUnitPlatformOptions>? ?: Action {}
         val suites = testingExtension.suites
         suites.named("test", JvmTestSuite::class.java) {
-            configureTestSuite(project, it, junitVersion, mockito, junitAction)
+            configureTestSuite(project, this, junitVersion, mockito, junitAction)
         }
         for ((version, _) in multiSourceSets) {
             suites.named("test$version", JvmTestSuite::class.java) {
-                configureTestSuite(project, it, junitVersion, mockito, junitAction)
+                configureTestSuite(project, this, junitVersion, mockito, junitAction)
             }
         }
     }
@@ -82,14 +82,14 @@ internal open class InternalJUnitIntegration(
         suite.useJUnitJupiter(junitVersion)
         suite.dependencies {
             if (mockito != null) {
-                it.implementation.add(mockito)
+                implementation.add(mockito)
             }
         }
-        suite.targets.all { target ->
-            target.testTask.configure { task ->
-                task.group = InternalJavaExtension.TASK_GROUP
-                task.useJUnitPlatform(junitAction)
-                task.failOnNoDiscoveredTests.set(false)
+        suite.targets.all {
+            testTask.configure {
+                group = InternalJavaExtension.TASK_GROUP
+                useJUnitPlatform(junitAction)
+                failOnNoDiscoveredTests.set(false)
             }
         }
     }

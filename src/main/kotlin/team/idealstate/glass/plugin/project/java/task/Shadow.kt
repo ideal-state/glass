@@ -79,43 +79,43 @@ abstract class Shadow
         fun execute() {
             val relocators = relocators
             val destinationDirectory = destinationDirectory.get().asFile
-            project.copy { root ->
-                root.into(destinationDirectory)
-                root.includeEmptyDirs = false
+            project.copy {
+                into(destinationDirectory)
+                includeEmptyDirs = false
                 val charset = Charset.forName(encoding)
-                root.eachFile { each ->
-                    each.path = relocate(each.path, relocators)
-                    val path = each.path
-                    val name = each.name
+                eachFile {
+                    path = relocate(path, relocators)
+                    val path = path
+                    val name = name
                     if (JavaUtils.isMaybeClassFile(name)) {
                         if (JavaUtils.isMaybeModuleInfoFile(name)) {
                             moduleInfoContents
                                 .computeIfAbsent(path) {
                                     ConcurrentLinkedDeque()
-                                }.add(ModuleInfo.of(each.file))
-                            each.exclude()
+                                }.add(ModuleInfo.of(file))
+                            exclude()
                         }
                     } else if (JavaUtils.isMaybeServicesFile(path)) {
                         servicesContents
                             .computeIfAbsent(path) {
                                 ConcurrentLinkedDeque()
-                            }.addAll(each.open().bufferedReader(charset).readLines())
-                        each.exclude()
+                            }.addAll(open().bufferedReader(charset).readLines())
+                        exclude()
                     }
                 }
                 for (dependency in getDependencies()) {
-                    root.from(project.zipTree(dependency)) { copy ->
-                        copy.duplicatesStrategy = DuplicatesStrategy.WARN
-                        copy.eachFile { each ->
-                            val path = each.path
+                    from(project.zipTree(dependency)) {
+                        duplicatesStrategy = DuplicatesStrategy.WARN
+                        eachFile {
+                            val path = path
                             if (path.startsWith("META-INF/maven/") || JavaUtils.isMaybeManifestFile(path)) {
-                                each.exclude()
+                                exclude()
                             }
                         }
                     }
                 }
-                root.from(project.zipTree(artifact.get().archiveFile.get())) { copy ->
-                    copy.duplicatesStrategy = DuplicatesStrategy.INCLUDE
+                from(project.zipTree(artifact.get().archiveFile.get())) {
+                    duplicatesStrategy = DuplicatesStrategy.INCLUDE
                 }
             }
 

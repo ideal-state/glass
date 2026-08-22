@@ -111,37 +111,37 @@ internal open class InternalJavaArtifacts(
     ): TaskProvider<Jar> {
         val javaManifest = InternalJavaManifest(project.objects)
         manifestAction?.execute(javaManifest)
-        if (!multiSourceSets.isEmpty()) {
+        if (multiSourceSets.isNotEmpty()) {
             javaManifest.add {
-                it.attributes["Multi-Release"] = true
+                attributes["Multi-Release"] = true
             }
         }
         val copyright =
             project.tasks.register("copyright", Copyright::class.java) {
-                it.group = TASK_GROUP
+                group = TASK_GROUP
             }
         return project.tasks.named("jar", Jar::class.java) {
-            it.group = TASK_GROUP
+            group = TASK_GROUP
             for ((multiVersion, sourceSet) in multiSourceSets) {
-                it.dependsOn(sourceSet.classesTaskName)
+                dependsOn(sourceSet.classesTaskName)
                 val base = "${JavaUtils.MULTI_RELEASE_DIR_PATH_NAME}$multiVersion"
-                it.from(project.tasks.named(sourceSet.compileJavaTaskName)) { copy ->
-                    copy.into(base)
-                    copy.exclude { element ->
+                from(project.tasks.named(sourceSet.compileJavaTaskName)) {
+                    into(base)
+                    exclude { element ->
                         element.path == "previous-compilation-data.bin"
                     }
                 }
-                it.from(project.tasks.named(sourceSet.processResourcesTaskName)) { copy ->
-                    copy.into(base)
+                from(project.tasks.named(sourceSet.processResourcesTaskName)) {
+                    into(base)
                 }
 
-                it.dependsOn(copyright)
-                it.from(copyright) { copy ->
-                    copy.duplicatesStrategy = DuplicatesStrategy.INCLUDE
-                    copy.into("META-INF/copyright/")
+                dependsOn(copyright)
+                from(copyright) {
+                    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+                    into("META-INF/copyright/")
                 }
             }
-            javaManifest.apply(project, it.manifest)
+            javaManifest.apply(project, manifest)
         }
     }
 
@@ -155,32 +155,32 @@ internal open class InternalJavaArtifacts(
         shadowJarAction: Action<JavaShadow>,
     ) {
         project.configurations.named(mainSourceSet.implementationConfigurationName) {
-            it.extendsFrom(shadow.get())
+            extendsFrom(shadow.get())
         }
         val shadowTask =
             project.tasks.register("shadow", Shadow::class.java, module, encoding, jar, shadow).apply {
                 configure {
-                    it.group = TASK_GROUP
-                    shadowJarAction.execute(it)
+                    group = TASK_GROUP
+                    shadowJarAction.execute(this)
                 }
             }
         val shadowJar =
             project.tasks.register("shadowJar", Jar::class.java) {
-                it.group = TASK_GROUP
-                it.dependsOn(shadowTask)
-                it.from(shadowTask)
-                it.archiveBaseName.set(project.provider { jar.get().archiveBaseName.orNull })
-                it.archiveAppendix.set(project.provider { jar.get().archiveAppendix.orNull })
-                it.archiveVersion.set(project.provider { jar.get().archiveVersion.orNull })
-                it.archiveClassifier.set(project.provider { jar.get().archiveClassifier.orNull })
-                it.archiveExtension.set(project.provider { jar.get().archiveExtension.get() })
-                it.destinationDirectory.set(project.provider { jar.get().destinationDirectory.get() })
-                it.manifest { manifest ->
-                    manifest.attributes.putAll(jar.get().manifest.attributes)
+                group = TASK_GROUP
+                dependsOn(shadowTask)
+                from(shadowTask)
+                archiveBaseName.set(project.provider { jar.get().archiveBaseName.orNull })
+                archiveAppendix.set(project.provider { jar.get().archiveAppendix.orNull })
+                archiveVersion.set(project.provider { jar.get().archiveVersion.orNull })
+                archiveClassifier.set(project.provider { jar.get().archiveClassifier.orNull })
+                archiveExtension.set(project.provider { jar.get().archiveExtension.get() })
+                destinationDirectory.set(project.provider { jar.get().destinationDirectory.get() })
+                manifest {
+                    attributes.putAll(jar.get().manifest.attributes)
                 }
             }
         jar.configure {
-            it.finalizedBy(shadowJar)
+            finalizedBy(shadowJar)
         }
     }
 
@@ -196,7 +196,7 @@ internal open class InternalJavaArtifacts(
         val mainSources =
             project.tasks.register("sources", Sources::class.java, mainSourceSet).apply {
                 configure {
-                    it.group = TASK_GROUP
+                    group = TASK_GROUP
                 }
             }
         val multiSources = linkedMapOf<Int, TaskProvider<Sources>>()
@@ -219,23 +219,23 @@ internal open class InternalJavaArtifacts(
                         sourceSet,
                     ).apply {
                         configure {
-                            it.group = TASK_GROUP
+                            group = TASK_GROUP
                         }
                     }
         }
         project.tasks.register("sourcesJar", Jar::class.java) {
-            it.group = TASK_GROUP
-            it.archiveClassifier.set("sources")
-            it.dependsOn(mainSources)
-            it.from(mainSources)
+            group = TASK_GROUP
+            archiveClassifier.set("sources")
+            dependsOn(mainSources)
+            from(mainSources)
             for ((multiVersion, sources) in multiSources) {
-                it.dependsOn(sources)
+                dependsOn(sources)
                 val base = "${JavaUtils.MULTI_RELEASE_DIR_PATH_NAME}$multiVersion"
-                it.from(sources) { copy ->
-                    copy.into(base)
+                from(sources) {
+                    into(base)
                 }
             }
-            it.destinationDirectory.set(project.layout.buildDirectory.dir("libs"))
+            destinationDirectory.set(project.layout.buildDirectory.dir("libs"))
         }
     }
 
@@ -250,33 +250,33 @@ internal open class InternalJavaArtifacts(
         val javaDocumentation = InternalJavaDocumentation(project.objects, toolchainVersion)
         javadocJarAction.execute(javaDocumentation)
         project.tasks.register("javadocJar", Jar::class.java) {
-            it.group = TASK_GROUP
-            it.archiveClassifier.set("javadoc")
-            it.from(project.tasks.named("javadoc", Javadoc::class.java))
-            it.destinationDirectory.set(project.layout.buildDirectory.dir("libs"))
+            group = TASK_GROUP
+            archiveClassifier.set("javadoc")
+            from(project.tasks.named("javadoc", Javadoc::class.java))
+            destinationDirectory.set(project.layout.buildDirectory.dir("libs"))
         }
         project.tasks.named("javadoc", Javadoc::class.java) {
-            it.group = TASK_GROUP
-            it.isFailOnError = false
-            it.options { options ->
+            group = TASK_GROUP
+            isFailOnError = false
+            options {
                 val docletFiles =
                     doclet
                         .get()
                         .allArtifacts.files.files
-                if (options is StandardJavadocDocletOptions) {
-                    options.charSet(encoding)
-                    options.docEncoding(encoding)
-                    options.author(true)
-                    options.version(true)
-                    options.addBooleanOption("Xdoclint:none", true)
+                if (this is StandardJavadocDocletOptions) {
+                    charSet(encoding)
+                    docEncoding(encoding)
+                    author(true)
+                    version(true)
+                    addBooleanOption("Xdoclint:none", true)
                 }
-                if (!docletFiles.isEmpty()) {
+                if (docletFiles.isNotEmpty()) {
                     options.docletpath.addAll(docletFiles)
                 }
                 options.encoding(encoding)
                 options.jFlags("-Dfile.encoding=$encoding")
             }
-            javaDocumentation.apply(it, toolchains)
+            javaDocumentation.apply(this, toolchains)
         }
     }
 }

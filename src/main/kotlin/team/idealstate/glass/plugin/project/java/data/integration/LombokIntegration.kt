@@ -18,7 +18,7 @@ package team.idealstate.glass.plugin.project.java.data.integration
 
 interface LombokIntegration {
     companion object {
-        const val DEFAULT_LOMBOK_VERSION = "1.18.42"
+        const val DEFAULT_LOMBOK_VERSION = "1.18.46"
     }
 
     val version: String

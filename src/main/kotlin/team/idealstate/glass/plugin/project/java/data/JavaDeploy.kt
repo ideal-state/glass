@@ -14,20 +14,9 @@
  *    limitations under the License.
  */
 
-package team.idealstate.glass.plugin.project.java.data.integration
+package team.idealstate.glass.plugin.project.java.data
 
-import org.gradle.api.Action
-import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
+interface JavaDeploy {
 
-interface JUnitIntegration {
-    companion object {
-        const val DEFAULT_JUNIT_VERSION = "5.14.4"
-        const val DEFAULT_MOCKITO_VERSION = "5.23.0"
-    }
-
-    val version: String
-
-    fun platform(action: Action<JUnitPlatformOptions>)
-
-    fun mockito(version: String = DEFAULT_MOCKITO_VERSION)
+    fun sonatype()
 }

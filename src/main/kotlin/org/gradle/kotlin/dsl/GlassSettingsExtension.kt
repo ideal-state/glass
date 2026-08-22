@@ -24,6 +24,7 @@ import java.nio.file.Paths
 
 private const val BUILD_SRC_DIR_NAME = "buildSrc"
 private const val BUILD_KOTLIN_SCRIPT_NAME = "build.gradle.kts"
+private const val SETTINGS_KOTLIN_SCRIPT_NAME = "settings.gradle.kts"
 private const val MODULE_ID_DELIMITER_CHAR = ':'
 private const val MODULE_ID_DELIMITER = MODULE_ID_DELIMITER_CHAR.toString()
 private const val SPOTLESS_BUILD_MODULE_ID_PREFIX = ":build:spotless-"
@@ -54,6 +55,7 @@ fun Settings.multiModule(
 
     println("\n> Modules: \n> Base Dir: \"$baseDir\"")
 
+    val settingsScriptDirs = mutableSetOf<File>()
     val buildScriptFiles = mutableListOf<File>()
     for (file in baseDir.listFiles()) {
         !file.isDirectory && continue
@@ -63,6 +65,8 @@ fun Settings.multiModule(
             val name = item.name
             if (name == BUILD_KOTLIN_SCRIPT_NAME) {
                 buildScriptFiles.add(item)
+            } else if (name == SETTINGS_KOTLIN_SCRIPT_NAME) {
+                settingsScriptDirs.add(item.parentFile)
             }
         }
     }
@@ -70,6 +74,9 @@ fun Settings.multiModule(
     var count = 0
     for (buildScriptFile in buildScriptFiles) {
         val projectDir = buildScriptFile.parentFile
+        if (settingsScriptDirs.contains(projectDir)) {
+            continue
+        }
         val moduleId =
             MODULE_ID_DELIMITER_CHAR +
                 projectDir

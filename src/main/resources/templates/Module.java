@@ -7,4 +7,6 @@ public interface Module {
     String ARTIFACT_ID = "${artifactId}";
 
     String VERSION = "${version}";
+
+    Long VERSION_CODE = ${version_code};
 }

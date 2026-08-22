@@ -36,8 +36,8 @@ internal open class ProjectGlassExtension(
         action: Action<T>,
     ) {
         project.extensions.configure(type) {
-            action.execute(it)
-            it.apply()
+            action.execute(this)
+            apply()
         }
     }
 }

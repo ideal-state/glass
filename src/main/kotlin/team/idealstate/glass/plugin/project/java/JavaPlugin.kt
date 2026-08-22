@@ -22,7 +22,7 @@ import team.idealstate.glass.plugin.project.java.internal.extension.InternalJava
 
 open class JavaPlugin : ProjectPlugin("java") {
     init {
-        dependsOn("java-library", "maven-publish", "signing")
+        dependsOn("java-library", "maven-publish", "signing", "org.jreleaser")
     }
 
     override fun apply() {

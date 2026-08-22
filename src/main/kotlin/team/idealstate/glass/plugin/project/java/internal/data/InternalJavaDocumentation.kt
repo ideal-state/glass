@@ -36,7 +36,7 @@ internal open class InternalJavaDocumentation(
         val doclet = doclet.orNull
         if (doclet != null) {
             javadoc.options {
-                it.doclet = doclet
+                this.doclet = doclet
             }
         }
     }

@@ -33,8 +33,8 @@ abstract class Spotless<T : FormatExtension>(
 
     final override fun apply() {
         project.extensions.configure(SpotlessExtension::class.java) {
-            it.format(name, type) { format ->
-                doApply(format)
+            format(name, type) {
+                doApply(this)
             }
         }
     }

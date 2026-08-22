@@ -1,26 +1,26 @@
 [versions]
 # plugins
-plugin-publish = "2.0.0"
-dokka = "2.1.0-Beta"
-spotless = "7.2.1"
-jreleaser = "1.20.0"
+plugin-publish = "2.1.1"
+dokka = "2.2.0"
+spotless = "8.10.0"
+jreleaser = "1.25.0"
 foojay-resolver = "1.0.0"
+# test
+junit-bom = "5.14.4"
 # libraries
-junit-bom = "5.13.4"
-asm = "9.8"
-jackson = "2.20.0"
+jackson = "3.2.2"
+asm = "9.10.1"
 
 [plugins]
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 plugin-publish = { id = "com.gradle.plugin-publish", version.ref = "plugin-publish" }
-jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
 
 [libraries]
+spotless = { group = "com.diffplug.spotless", name = "spotless-plugin-gradle", version.ref = "spotless" }
+jreleaser = { group = "org.jreleaser", name = "jreleaser-gradle-plugin", version.ref = "jreleaser" }
 foojay-resolver = { group = "org.gradle.toolchains", name = "foojay-resolver", version.ref = "foojay-resolver" }
 junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit-bom" }
 asm = { group = "org.ow2.asm", name = "asm", version.ref = "asm" }
-jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
-jackson-module-kotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson" }
-spotless = { group = "com.diffplug.spotless", name = "spotless-plugin-gradle", version.ref = "spotless" }
-jreleaser = { group = "org.jreleaser", name = "jreleaser-model-api", version.ref = "jreleaser" }
+jackson-databind = { group = "tools.jackson.core", name = "jackson-databind", version.ref = "jackson" }
+jackson-module-kotlin = { group = "tools.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson" }

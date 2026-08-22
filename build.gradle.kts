@@ -1,31 +1,27 @@
-import com.diffplug.gradle.spotless.BaseKotlinExtension
-import com.diffplug.gradle.spotless.HasBuiltinDelimiterForLicense
 import com.diffplug.spotless.LineEnding
-import org.jreleaser.model.Active
 
 plugins {
-    id("java-gradle-plugin")
-    id("signing")
-    `embedded-kotlin`
+    `kotlin-dsl`
+    signing
     alias(libs.plugins.dokka)
     alias(libs.plugins.spotless)
     alias(libs.plugins.plugin.publish)
-    alias(libs.plugins.jreleaser)
 }
 
 group = "team.idealstate.glass"
-version = "0.2.0-SNAPSHOT"
+version = "0.2.0"
+
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+        vendor.set(JvmVendorSpec.AZUL)
+    }
+}
 
 configurations {
     api {
         dependencies.remove(project.dependencies.gradleApi())
     }
-}
-
-repositories {
-    gradlePluginPortal()
-    mavenCentral()
-    mavenLocal()
 }
 
 dependencies {
@@ -37,18 +33,34 @@ dependencies {
 
     implementation(libs.foojay.resolver)
     implementation(libs.spotless)
+    implementation(libs.jreleaser)
 }
 
-kotlin {
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
-        vendor.set(JvmVendorSpec.AZUL)
+spotless {
+    encoding(Charsets.UTF_8)
+    lineEndings = LineEnding.GIT_ATTRIBUTES_FAST_ALLSAME
+
+    kotlinGradle {
+        target("*.gradle.kts")
+        ktlint()
+        endWithNewline()
+    }
+
+    kotlin {
+        target("src/*/kotlin/**/*.kt", "src/*/kotlin/**/*.kts")
+        rootProject.file("HEADER.txt").run {
+            if (exists()) {
+                licenseHeaderFile(this)
+            }
+        }
+        ktlint()
+        endWithNewline()
     }
 }
 
 gradlePlugin {
-    website.set("https://docs.ideal-state.team/glass/")
-    vcsUrl.set("https://gitlab.com/ideal-state/glass")
+    website.set("https://github.com/ideal-state/glass/")
+    vcsUrl.set("https://github.com/ideal-state/glass")
     plugins {
         register("Glass") {
             id = "team.idealstate.glass"
@@ -65,15 +77,16 @@ signing {
     sign(publishing.publications)
 }
 
-val copyrightRootName = "copyright"
-val copyright by tasks.registering(Copy::class) {
+val copyrightBaseDirName = "copyright"
+val copyright = tasks.register<Copy>("copyright") {
     group = "documentation"
+    description = ""
     val licenseFile = "LICENSE.txt"
     val noticeFile = "NOTICE.txt"
     val licensesDir = "LICENSES/"
     val destinationDirectory =
         project.layout.buildDirectory
-            .dir("docs/$copyrightRootName")
+            .dir("docs/$copyrightBaseDirName")
             .get()
     into(destinationDirectory.asFile)
     val rootProjectDir = project.rootProject.projectDir
@@ -87,12 +100,13 @@ val copyright by tasks.registering(Copy::class) {
 tasks.processResources {
     dependsOn(copyright)
     from(copyright) {
-        into("META-INF/$copyrightRootName/")
+        into("META-INF/$copyrightBaseDirName")
     }
 }
 
-val sourcesJar by tasks.registering(Jar::class) {
+val sourcesJar = tasks.register<Jar>("sourcesJar") {
     group = "build"
+    description = ""
     dependsOn(tasks.processResources)
     archiveClassifier.set("sources")
     from(
@@ -103,125 +117,12 @@ val sourcesJar by tasks.registering(Jar::class) {
     )
 }
 
-val dokkaGeneratedDir = "$projectDir/build/dokka/"
-val copyToJavadoc by tasks.registering(Copy::class) {
-    group = "documentation"
-    dependsOn(tasks.dokkaGenerate)
-    from("${dokkaGeneratedDir}html/")
-    into("$projectDir/build/docs/javadoc/")
-}
-
-tasks.dokkaGenerate {
-    finalizedBy(copyToJavadoc)
-}
-
-tasks.logLinkDokkaGeneratePublicationHtml {
-    enabled = false
-}
-
-val javadocJar by tasks.registering(Jar::class) {
+val javadocJar = tasks.register<Jar>("javadocJar") {
     group = "build"
-//    dependsOn(tasks.dokkaGenerate)
+    description = ""
     archiveClassifier.set("javadoc")
-//    from("${dokkaGeneratedDir}html/")
 }
 
 tasks.assemble {
     dependsOn(sourcesJar, javadocJar)
-}
-
-spotless {
-    fun applyLicenseHeader(it: HasBuiltinDelimiterForLicense) {
-        rootProject.file("HEADER.txt").run {
-            if (exists()) {
-                it.licenseHeaderFile(this)
-            }
-        }
-    }
-
-    fun applyKtlint(it: BaseKotlinExtension.KtlintConfig) {
-        var config = project.file(".editorconfig")
-        if (config.exists()) {
-            it.setEditorConfigPath(config)
-        } else {
-            config = project.rootProject.file(".editorconfig")
-            if (config.exists()) {
-                it.setEditorConfigPath(config)
-            }
-        }
-    }
-
-    encoding(Charsets.UTF_8)
-    lineEndings = LineEnding.GIT_ATTRIBUTES_FAST_ALLSAME
-
-    kotlinGradle {
-        target("*.gradle.kts")
-        applyKtlint(ktlint())
-        endWithNewline()
-    }
-
-    kotlin {
-        target("src/*/kotlin/**/*.kt", "src/*/kotlin/**/*.kts")
-        applyLicenseHeader(this)
-        applyKtlint(ktlint())
-        endWithNewline()
-    }
-}
-
-publishing {
-    repositories {
-        maven {
-            name = project.name
-            url =
-                project.layout.buildDirectory
-                    .dir("repository")
-                    .get()
-                    .asFile
-                    .normalize()
-                    .toURI()
-        }
-        mavenLocal()
-    }
-}
-
-jreleaser {
-    deploy {
-        maven {
-            mavenCentral {
-                register("release") {
-                    active.set(Active.RELEASE)
-                    url.set("https://central.sonatype.com/api/v1/publisher")
-                    sign.set(false)
-                    stagingRepository("build/repository")
-                }
-            }
-            nexus2 {
-                register("snapshot") {
-                    active.set(Active.SNAPSHOT)
-                    url.set("https://central.sonatype.com/repository/maven-snapshots")
-                    snapshotUrl.set("https://central.sonatype.com/repository/maven-snapshots")
-                    sign.set(false)
-                    applyMavenCentralRules.set(true)
-                    snapshotSupported.set(true)
-                    closeRepository.set(true)
-                    releaseRepository.set(true)
-                    verifyPom.set(false)
-                    stagingRepository("build/repository")
-                }
-            }
-        }
-    }
-}
-
-val doDeploy by tasks.registering {
-    dependsOn(tasks.test)
-    dependsOn(tasks.named("publishAllPublicationsToGlassRepository"))
-    finalizedBy(tasks.jreleaserDeploy)
-}
-
-val deploy by tasks.registering {
-    group = "glass"
-    dependsOn(tasks.clean)
-    dependsOn(tasks.spotlessApply)
-    finalizedBy(doDeploy)
 }
